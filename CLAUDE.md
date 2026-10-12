@@ -157,13 +157,15 @@ Save the returned `id` in `fashn_id`.
 
 Keep every route short. Never wait inside a single request for FASHN to finish.
 
-**The result screen** shows the try-on image with a before/after toggle, plus **Shop** and **Redo**. Redo asks for confirmation first: "Uses 1 credit."
+**The result screen** shows the try-on image with a before/after toggle, plus **Shop** and **Redo**. Redo asks for confirmation first: "Uses 1 credit." Redo sends a new random `seed` (0 to 2^32 − 1) in `inputs`. FASHN defaults to `seed` 42, and the same seed with the same images returns the identical picture. A first try-on leaves `seed` out.
 
 `return_base64` keeps the result off FASHN's servers: it is available there for 60 minutes instead of three days. Greg set `moderation_level` to `permissive`. Don't change it without asking him.
 
 ### 5. Credits
 
-Show a small credit balance using a server route that calls `GET https://api.fashn.ai/v1/credits`. Warn when the balance drops below 10.
+Show a small credit balance using a server route that calls `GET https://api.fashn.ai/v1/credits` (use `credits.total`). Warn when the balance drops below 10.
+
+Next to it, show what try-ons have cost, for example "12 credits left · 23 try-ons · $1.73 spent". FASHN has no spending history, so count it ourselves: every completed run costs 1 credit ($0.075 on-demand), and failed runs cost nothing. Redo overwrites the `tryons` row, so counting rows misses Redos. Keep a running count of completed runs per try-on instead (a new migration).
 
 If anything in this file disagrees with FASHN's current docs (https://docs.fashn.ai/api-reference/tryon-v1-6), stop and tell Sloane what's different before changing the code.
 

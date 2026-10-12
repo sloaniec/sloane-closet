@@ -23,4 +23,5 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 19. Idea: logins for Sloane's brothers and boyfriend, each with their own closet and try-ons. Already supported: create each account in Supabase like #8 (sign-ups stay off). Try-ons from every account spend credits from Greg's FASHN account, so check with him.
 20. Tapping an item in the closet opens nothing yet. The item screen comes with #4.
 21. Lululemon blocks the preview: its security service answers "Access Denied" to any automated visit, so the screenshot option is the way in. Tested 2026-10-12: Everlane works (picture, name, $24.00 price); Aritzia also blocks.
-22. Idea: a "Paste picture" button, so Sloane can copy a product photo in Safari (press and hold, then Copy) and paste it, instead of taking a screenshot.
+22. ~~Idea: a "Paste picture" button, so Sloane can copy a product photo in Safari (press and hold, then Copy) and paste it, instead of taking a screenshot.~~ Done in PR 3.
+23. Idea: an iPhone Shortcut in Safari's Share menu ("Add to Sloane's Closet") that grabs the product photo from the page on her phone, like Messages does for link previews, so blocked stores still work without a screenshot.

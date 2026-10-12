@@ -93,9 +93,29 @@ export function AddItemForm() {
     setStep("details");
   }
 
+  // Reads a picture copied in Safari (press and hold, Copy). iPhone shows a
+  // small "Paste" bubble to confirm.
+  async function pastePicture() {
+    setError(null);
+    try {
+      for (const item of await navigator.clipboard.read()) {
+        const type = item.types.find((t) => t.startsWith("image/"));
+        if (type) {
+          setImage(await item.getType(type));
+          return;
+        }
+      }
+    } catch {
+      // No clipboard access, or nothing pasteable: same message below.
+    }
+    setError(
+      "No picture to paste. In Safari, press and hold the product photo, tap Copy, and try again.",
+    );
+  }
+
   async function save() {
     if (!image) {
-      setError("Upload a screenshot of the item first.");
+      setError("Paste a picture or upload a screenshot of the item first.");
       return;
     }
     if (!title.trim()) {
@@ -168,7 +188,19 @@ export function AddItemForm() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div
+      className="flex flex-col gap-5"
+      onPaste={(e) => {
+        const file = Array.from(e.clipboardData.files).find((f) =>
+          f.type.startsWith("image/"),
+        );
+        if (file && needsScreenshot) {
+          e.preventDefault();
+          setError(null);
+          setImage(file);
+        }
+      }}
+    >
       {needsScreenshot && (
         <p className="rounded-2xl bg-sunshine/40 p-4 text-sm">
           This store didn&apos;t share a picture. Upload a screenshot of the
@@ -186,19 +218,34 @@ export function AddItemForm() {
       ) : null}
 
       {needsScreenshot && (
-        <label className="mx-auto cursor-pointer rounded-full bg-sunshine px-6 py-3 text-base font-semibold text-tide shadow-sm">
-          {image ? "Choose a different screenshot" : "Upload a screenshot"}
-          <input
-            type="file"
-            accept="image/*"
-            className="sr-only"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              e.target.value = "";
-              if (file) setImage(file);
-            }}
-          />
-        </label>
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-wrap justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => void pastePicture()}
+              className="rounded-full bg-sunshine px-5 py-3 text-base font-semibold text-tide shadow-sm transition active:scale-[0.98]"
+            >
+              Paste picture
+            </button>
+            <label className="cursor-pointer rounded-full bg-seaglass px-5 py-3 text-base font-semibold text-tide shadow-sm transition active:scale-[0.98]">
+              {image ? "Choose a different screenshot" : "Upload a screenshot"}
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (file) setImage(file);
+                }}
+              />
+            </label>
+          </div>
+          <p className="text-center text-xs">
+            To paste: in Safari, press and hold the product photo, tap Copy,
+            then come back and tap Paste picture.
+          </p>
+        </div>
       )}
 
       <label className="flex flex-col gap-1 text-sm font-medium">

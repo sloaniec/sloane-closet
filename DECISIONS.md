@@ -70,3 +70,8 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** The server's store fetcher checks that every address a store name points to is public, at the moment it connects, using Node's own `http`/`https` with a custom address lookup.
 - **Why:** Checking first and connecting later lets a tricky site switch its address in between ("DNS rebinding") and reach private machines.
 - **Rejected:** Checking the address and then using `fetch`; adding the `undici` library.
+
+## 2026-10-12: "Paste picture" for stores that block the preview
+- **What:** When a store blocks the preview, a yellow **Paste picture** button sits next to a sea-glass **Upload a screenshot** button. She copies the product photo in Safari (press and hold, then Copy) and pastes it. On a Mac, Cmd+V works too.
+- **Why:** Sloane asked for it. A copied product photo is cleaner than a screenshot, which may help try-ons.
+- **Rejected:** Pretending to be Facebook's or Apple's link-preview robots to get past store blocks (impersonation). A Shortcut-based approach is saved as backlog #23.

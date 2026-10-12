@@ -157,7 +157,7 @@ Save the returned `id` in `fashn_id`.
 
 Keep every route short. Never wait inside a single request for FASHN to finish.
 
-**The result screen** shows the try-on image with a before/after toggle, plus **Shop** and **Redo**. Redo asks for confirmation first: "Uses 1 credit."
+**The result screen** shows the try-on image with a before/after toggle, plus **Shop** and **Redo**. Redo asks for confirmation first: "Uses 1 credit." Redo sends a new random `seed` (0 to 2^32 − 1) in `inputs`. FASHN defaults to `seed` 42, and the same seed with the same images returns the identical picture. A first try-on leaves `seed` out.
 
 `return_base64` keeps the result off FASHN's servers: it is available there for 60 minutes instead of three days. Greg set `moderation_level` to `permissive`. Don't change it without asking him.
 

@@ -38,3 +38,8 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** Try-ons use `tryon-v1.6` with `mode: "balanced"`, as in CLAUDE.md. FASHN's docs say this is 1 credit per image, and on-demand credits cost $0.075 each.
 - **Why:** Sloane wants to start with the normal version and see how the results look.
 - **Rejected for now:** `mode: "quality"` (same price, slower; backlog #16) and Try-On Max (sharper results, likely pricier; backlog #17).
+
+## 2026-10-12: Redo uses a new random seed
+- **What:** When Sloane taps Redo and confirms, the FASHN request includes a new random `seed`. The first try-on leaves it out.
+- **Why:** FASHN defaults to seed 42, and the same seed with the same images gives back the identical picture. Without a new seed, Redo would spend a credit for nothing.
+- **Rejected:** Leaving the seed at its default (Redo would repeat the same image).

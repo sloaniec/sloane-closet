@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/* Sloane's Closet palette: beachy, soft, warm, bright, sea glass,
+   with pops of yellow, orange, and gold. */
+:root {
+  --sand: #fdf8ee;
+  --shell: #ffffff;
+  --seaglass: #bfe3d6;
+  --seaglass-deep: #2f7d70;
+  --tide: #1f3b3a;
+  --sunshine: #ffd75e;
+  --gold: #e9a92b;
+  --coral-orange: #f28c38;
+}
+
+@theme inline {
+  --color-sand: var(--sand);
+  --color-shell: var(--shell);
+  --color-seaglass: var(--seaglass);
+  --color-seaglass-deep: var(--seaglass-deep);
+  --color-tide: var(--tide);
+  --color-sunshine: var(--sunshine);
+  --color-gold: var(--gold);
+  --color-coral-orange: var(--coral-orange);
+  --font-sans: var(--font-geist-sans);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: linear-gradient(180deg, #e3f4ee 0%, var(--sand) 45%);
+  color: var(--tide);
+}

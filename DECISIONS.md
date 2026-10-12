@@ -43,3 +43,8 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** When Sloane taps Redo and confirms, the FASHN request includes a new random `seed`. The first try-on leaves it out.
 - **Why:** FASHN defaults to seed 42, and the same seed with the same images gives back the identical picture. Without a new seed, Redo would spend a credit for nothing.
 - **Rejected:** Leaving the seed at its default (Redo would repeat the same image).
+
+## 2026-10-12: Show credits left and amount spent
+- **What:** The credits feature (#5) shows the FASHN balance and the app's own tally of try-ons and dollars spent, for example "12 credits left · 23 try-ons · $1.73 spent".
+- **Why:** Sloane wants both. FASHN's API only returns the balance, so the app counts completed runs itself (Redos included).
+- **Rejected:** Showing the balance only.

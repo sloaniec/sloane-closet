@@ -163,7 +163,9 @@ Keep every route short. Never wait inside a single request for FASHN to finish.
 
 ### 5. Credits
 
-Show a small credit balance using a server route that calls `GET https://api.fashn.ai/v1/credits`. Warn when the balance drops below 10.
+Show a small credit balance using a server route that calls `GET https://api.fashn.ai/v1/credits` (use `credits.total`). Warn when the balance drops below 10.
+
+Next to it, show what try-ons have cost, for example "12 credits left · 23 try-ons · $1.73 spent". FASHN has no spending history, so count it ourselves: every completed run costs 1 credit ($0.075 on-demand), and failed runs cost nothing. Redo overwrites the `tryons` row, so counting rows misses Redos. Keep a running count of completed runs per try-on instead (a new migration).
 
 If anything in this file disagrees with FASHN's current docs (https://docs.fashn.ai/api-reference/tryon-v1-6), stop and tell Sloane what's different before changing the code.
 

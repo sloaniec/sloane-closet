@@ -15,3 +15,4 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 11. Idea: dark mode. The app is light-only for now so the beachy colors look the same everywhere.
 12. Idea: a special font for the "Sloane's Closet" title (currently the same clean font as everything else).
 13. ~~Bug: `0001_init.sql` failed in the Supabase SQL editor ("syntax error at or near loop"). Replaced the loop with plain statements.~~ Done in PR 1.
+14. Idea: more realistic try-ons by sending FASHN several photos, or body measurements. Check FASHN's current docs; as far as we know, try-on v1.6 takes one person photo and no measurements.

@@ -19,3 +19,4 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 15. FASHN docs: `seed` defaults to 42, and the same seed with the same inputs reproduces the same image. Redo must send a new random seed, or it spends a credit on an identical result. Sloane approved 2026-10-12: Redo sends a new random seed. Build it in #4.
 16. Idea: use FASHN `mode: "quality"` instead of `"balanced"` (docs: same 1 credit, about 12–17 s instead of about 8 s). Sloane to decide. 2026-10-12: Sloane chose to start with the normal version (v1.6, balanced); revisit after trying it.
 17. Idea: FASHN "Try-On Max" (docs: higher resolution, more item types, prompt-based customization). Different endpoint and likely a different price, so ask Greg. 2026-10-12: not now; start with v1.6 and see how it goes.
+18. Idea: show how much try-ons have cost, by counting completed try-ons in our own database (1 credit = $0.075 each). Could go with the credit balance in #5.

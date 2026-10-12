@@ -48,3 +48,8 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** The credits feature (#5) shows the FASHN balance and the app's own tally of try-ons and dollars spent, for example "12 credits left · 23 try-ons · $1.73 spent".
 - **Why:** Sloane wants both. FASHN's API only returns the balance, so the app counts completed runs itself (Redos included).
 - **Rejected:** Showing the balance only.
+
+## 2026-10-12: Claude merges when Sloane says "merge it"
+- **What:** After checking the preview, Sloane can tell Claude "merge it", and Claude merges the pull request.
+- **Why:** Saves her opening GitHub, and keeps her preview check before anything reaches the live app.
+- **Rejected:** GitHub auto-merge. There are no automatic checks yet, so it would merge before she has seen the preview, and before a needed migration has run.

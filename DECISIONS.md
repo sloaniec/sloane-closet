@@ -33,3 +33,8 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** Long edge at most 1600 px, saved as JPEG at 90% quality.
 - **Why:** FASHN works at 864 × 1296, so bigger files just upload slower and take more storage.
 - **Rejected:** Uploading the original phone photo.
+
+## 2026-10-12: Start with FASHN Try-On v1.6 in balanced mode
+- **What:** Try-ons use `tryon-v1.6` with `mode: "balanced"`, as in CLAUDE.md. FASHN's docs say this is 1 credit per image, and on-demand credits cost $0.075 each.
+- **Why:** Sloane wants to start with the normal version and see how the results look.
+- **Rejected for now:** `mode: "quality"` (same price, slower; backlog #16) and Try-On Max (sharper results, likely pricier; backlog #17).

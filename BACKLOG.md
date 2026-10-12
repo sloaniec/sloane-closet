@@ -2,7 +2,7 @@
 
 Every to-do, bug, or idea gets a numbered line. When one is done, mark it with the PR number. Never delete a line.
 
-1. Feature 1: Foundation (app, Tailwind, Supabase clients, sign-in, empty closet, manifest, `.env.example`, husky + secretlint, `0001_init.sql`)
+1. ~~Feature 1: Foundation (app, Tailwind, Supabase clients, sign-in, empty closet, manifest, `.env.example`, husky + secretlint, `0001_init.sql`)~~ Done in PR 1.
 2. Feature 2: My photo
 3. Feature 3: Add an item
 4. Feature 4: Try it on

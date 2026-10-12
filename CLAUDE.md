@@ -172,6 +172,7 @@ If anything in this file disagrees with FASHN's current docs (https://docs.fashn
 ## How we work
 
 - Every change goes on its own branch with a pull request. Sloane checks the Vercel preview on her phone, then merges.
+- Sloane can also say "merge it" in chat, and Claude merges the pull request for her. Only merge when she says so, never automatically. Never merge code that depends on a migration until she confirms the migration ran.
 - `BACKLOG.md`: give every to-do, bug, or idea a numbered line as soon as it comes up. When one is done, mark it with the PR number. Never delete a line.
 - `DECISIONS.md`: record every decision that should outlive the task it came from. Include the date, the reason, and what was rejected.
 - Refer to backlog items by number in commits and pull requests ("#4").

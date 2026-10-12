@@ -48,3 +48,35 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** The credits feature (#5) shows the FASHN balance and the app's own tally of try-ons and dollars spent, for example "12 credits left · 23 try-ons · $1.73 spent".
 - **Why:** Sloane wants both. FASHN's API only returns the balance, so the app counts completed runs itself (Redos included).
 - **Rejected:** Showing the balance only.
+
+## 2026-10-12: Claude merges when Sloane says "merge it"
+- **What:** After checking the preview, Sloane can tell Claude "merge it", and Claude merges the pull request.
+- **Why:** Saves her opening GitHub, and keeps her preview check before anything reaches the live app.
+- **Rejected:** GitHub auto-merge. There are no automatic checks yet, so it would merge before she has seen the preview, and before a needed migration has run.
+
+## 2026-10-12: Adding an item
+- **What:** A round yellow + button at the bottom right of the closet opens "Add an item". She pastes a link and taps "Preview". The app shows the picture, name, store, and price, she picks a type, and taps "Save to closet". The closet shows items two across, with name, store, and price.
+- **Type labels:** "Let the app guess", "Top", "Bottom", "Dress or one-piece" (FASHN's `auto`, `tops`, `bottoms`, `one-pieces`).
+- **When a store blocks the preview:** "This store didn't share a picture. Upload a screenshot of the item instead."
+- **Why:** Sloane chose the button, layout, labels, and message.
+- **Rejected:** A "+ Add item" button under the title; three across with pictures only; FASHN's plain category names; a shorter fallback message.
+
+## 2026-10-12: Store images go through the server, then get shrunk in the browser
+- **What:** `/api/items/image` fetches the store's picture with the same safety checks as the preview. The browser shrinks it to at most 1600 px as JPEG and saves it to `{user_id}/items/{uuid}.jpg`.
+- **Why:** Browsers usually can't read other sites' images directly. Shrinking in the browser reuses the photo code and needs no new library.
+- **Rejected:** Server-side image conversion (would need a new library such as sharp).
+
+## 2026-10-12: Safety checks happen when the connection is made
+- **What:** The server's store fetcher checks that every address a store name points to is public, at the moment it connects, using Node's own `http`/`https` with a custom address lookup.
+- **Why:** Checking first and connecting later lets a tricky site switch its address in between ("DNS rebinding") and reach private machines.
+- **Rejected:** Checking the address and then using `fetch`; adding the `undici` library.
+
+## 2026-10-12: "Paste picture" for stores that block the preview
+- **What:** When a store blocks the preview, a yellow **Paste picture** button sits next to a sea-glass **Upload a screenshot** button. She copies the product photo in Safari (press and hold, then Copy) and pastes it. On a Mac, Cmd+V works too.
+- **Why:** Sloane asked for it. A copied product photo is cleaner than a screenshot, which may help try-ons.
+- **Rejected:** Pretending to be Facebook's or Apple's link-preview robots to get past store blocks (impersonation). A Shortcut-based approach is saved as backlog #23.
+
+## 2026-10-12: Blocked-store message mentions pasting
+- **What:** "This store didn't share a picture. Paste or upload one instead."
+- **Why:** Sloane asked for it once Paste picture was added.
+- **Rejected:** The earlier "Upload a screenshot of the item instead."

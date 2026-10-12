@@ -14,3 +14,4 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 10. After #1 merges: import the repo into Vercel and add the three environment variables on the import screen (Sloane).
 11. Idea: dark mode. The app is light-only for now so the beachy colors look the same everywhere.
 12. Idea: a special font for the "Sloane's Closet" title (currently the same clean font as everything else).
+13. ~~Bug: `0001_init.sql` failed in the Supabase SQL editor ("syntax error at or near loop"). Replaced the loop with plain statements.~~ Done in PR 1.

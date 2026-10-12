@@ -85,32 +85,47 @@ create index tryons_item_id_user_id on public.tryons (item_id, user_id);
 -- ---------------------------------------------------------------------------
 -- Row-level security and grants: each user sees and changes only their rows.
 -- ---------------------------------------------------------------------------
-do $$
-declare
-  t text;
-begin
-  foreach t in array array['person_photos', 'closet_items', 'tryons'] loop
-    execute format('alter table public.%I enable row level security', t);
-    execute format('revoke all on public.%I from anon, authenticated', t);
-    execute format(
-      'grant select, insert, update, delete on public.%I to authenticated', t);
+alter table public.person_photos enable row level security;
+revoke all on public.person_photos from anon, authenticated;
+grant select, insert, update, delete on public.person_photos to authenticated;
 
-    execute format(
-      'create policy "Owner can select" on public.%I for select to authenticated
-         using (user_id = (select auth.uid()))', t);
-    execute format(
-      'create policy "Owner can insert" on public.%I for insert to authenticated
-         with check (user_id = (select auth.uid()))', t);
-    execute format(
-      'create policy "Owner can update" on public.%I for update to authenticated
-         using (user_id = (select auth.uid()))
-         with check (user_id = (select auth.uid()))', t);
-    execute format(
-      'create policy "Owner can delete" on public.%I for delete to authenticated
-         using (user_id = (select auth.uid()))', t);
-  end loop;
-end
-$$;
+create policy "Owner can select" on public.person_photos for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Owner can insert" on public.person_photos for insert to authenticated
+  with check (user_id = (select auth.uid()));
+create policy "Owner can update" on public.person_photos for update to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+create policy "Owner can delete" on public.person_photos for delete to authenticated
+  using (user_id = (select auth.uid()));
+
+alter table public.closet_items enable row level security;
+revoke all on public.closet_items from anon, authenticated;
+grant select, insert, update, delete on public.closet_items to authenticated;
+
+create policy "Owner can select" on public.closet_items for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Owner can insert" on public.closet_items for insert to authenticated
+  with check (user_id = (select auth.uid()));
+create policy "Owner can update" on public.closet_items for update to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+create policy "Owner can delete" on public.closet_items for delete to authenticated
+  using (user_id = (select auth.uid()));
+
+alter table public.tryons enable row level security;
+revoke all on public.tryons from anon, authenticated;
+grant select, insert, update, delete on public.tryons to authenticated;
+
+create policy "Owner can select" on public.tryons for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Owner can insert" on public.tryons for insert to authenticated
+  with check (user_id = (select auth.uid()));
+create policy "Owner can update" on public.tryons for update to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+create policy "Owner can delete" on public.tryons for delete to authenticated
+  using (user_id = (select auth.uid()));
 
 -- ---------------------------------------------------------------------------
 -- Storage: one private bucket. Every object path starts with the owner's id:

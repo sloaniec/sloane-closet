@@ -75,3 +75,8 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** When a store blocks the preview, a yellow **Paste picture** button sits next to a sea-glass **Upload a screenshot** button. She copies the product photo in Safari (press and hold, then Copy) and pastes it. On a Mac, Cmd+V works too.
 - **Why:** Sloane asked for it. A copied product photo is cleaner than a screenshot, which may help try-ons.
 - **Rejected:** Pretending to be Facebook's or Apple's link-preview robots to get past store blocks (impersonation). A Shortcut-based approach is saved as backlog #23.
+
+## 2026-10-12: Blocked-store message mentions pasting
+- **What:** "This store didn't share a picture. Paste or upload one instead."
+- **Why:** Sloane asked for it once Paste picture was added.
+- **Rejected:** The earlier "Upload a screenshot of the item instead."

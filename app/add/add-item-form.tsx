@@ -203,8 +203,8 @@ export function AddItemForm() {
     >
       {needsScreenshot && (
         <p className="rounded-2xl bg-sunshine/40 p-4 text-sm">
-          This store didn&apos;t share a picture. Upload a screenshot of the
-          item instead.
+          This store didn&apos;t share a picture. Paste or upload one
+          instead.
         </p>
       )}
 

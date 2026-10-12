@@ -9,4 +9,4 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 5. Feature 5: Credits
 6. Design the real app icon (placeholder until then)
 7. Check: newer Next.js renamed `middleware.ts` to `proxy.ts`. Confirm which name the current version uses when building #1.
-8. Before first deploy: create Sloane's and Greg's accounts with "Auto Confirm User", then turn off "Allow new users to sign up".
+8. ~~Before first deploy: create Sloane's and Greg's accounts with "Auto Confirm User", then turn off "Allow new users to sign up".~~ Done by Sloane in the Supabase dashboard on 2026-10-12 (no PR, dashboard-only).

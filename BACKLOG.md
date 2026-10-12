@@ -8,7 +8,7 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 4. Feature 4: Try it on
 5. Feature 5: Credits
 6. Design the real app icon (placeholder until then)
-7. Check: newer Next.js renamed `middleware.ts` to `proxy.ts`. Confirm which name the current version uses when building #1.
+7. ~~Check: newer Next.js renamed `middleware.ts` to `proxy.ts`. Confirm which name the current version uses when building #1.~~ Done in PR 1: Next.js 16 uses `proxy.ts`.
 8. ~~Before first deploy: create Sloane's and Greg's accounts with "Auto Confirm User", then turn off "Allow new users to sign up".~~ Done by Sloane in the Supabase dashboard on 2026-10-12 (no PR, dashboard-only).
 9. Run `supabase/migrations/0001_init.sql` in the Supabase SQL editor (Sloane).
 10. After #1 merges: import the repo into Vercel and add the three environment variables on the import screen (Sloane).

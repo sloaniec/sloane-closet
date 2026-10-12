@@ -5,7 +5,7 @@ const JPEG_QUALITY = 0.9;
 
 // Shrinks a photo in the browser so its long edge is at most 1600 px,
 // and re-saves it as JPEG.
-export async function resizeToJpeg(file: File): Promise<Blob> {
+export async function resizeToJpeg(file: Blob): Promise<Blob> {
   const bitmap = await createImageBitmap(file, {
     imageOrientation: "from-image",
   });

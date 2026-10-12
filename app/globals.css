@@ -27,9 +27,12 @@
 
 html {
   color-scheme: light;
+  background: var(--sand);
 }
 
 body {
-  background: linear-gradient(180deg, #e3f4ee 0%, var(--sand) 45%);
+  /* No repeat: long pages fade into sand instead of restarting the gradient. */
+  background: var(--sand) linear-gradient(180deg, #e3f4ee 0%, var(--sand) 45%)
+    no-repeat;
   color: var(--tide);
 }

@@ -80,3 +80,18 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** "This store didn't share a picture. Paste or upload one instead."
 - **Why:** Sloane asked for it once Paste picture was added.
 - **Rejected:** The earlier "Upload a screenshot of the item instead."
+
+## 2026-10-13: Trying it on
+- **What:** Tapping a closet item opens it. **Try On** is yellow and **Shop** is sea-glass. While FASHN works, the picture shows "Getting you dressed…". When it's done, the try-on shows with an "On me" label, and tapping the picture flips to the store photo ("Original"). **Redo** replaces Try On and asks "Uses 1 credit." first. Closet cards show the try-on photo once there is one.
+- **Why:** Sloane chose the waiting message, tap-to-flip, try-on photos in the closet, and the button colors.
+- **Rejected:** "Trying it on…"; On me/Original tabs; product photos with a gold dot in the closet; two yellow buttons.
+
+## 2026-10-13: Try-on runs can't double-spend
+- **What:** Only one run per item and photo can be in progress. The database's unique (item, photo) rule and status-checked updates stop two quick taps from starting two runs. A finished try-on is reused unless she taps Redo. A run with no answer after 10 minutes counts as failed, so Try On works again.
+- **Why:** Every run costs Greg's credits (CLAUDE.md rule 4).
+- **Rejected:** Starting a run on every tap; retrying failed runs automatically.
+
+## 2026-10-13: Count completed runs in `tryons.completed_runs`
+- **What:** Migration 0002 adds `started_at` and `completed_runs`. Each completed run (first try or Redo) adds 1.
+- **Why:** Redo reuses the row, so counting rows would miss Redos. The spending tally in #5 adds these up.
+- **Rejected:** A separate table with one row per run (more than needed for now).

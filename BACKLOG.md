@@ -56,3 +56,4 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 52. Idea: a painted Profile button to match the arrows and +.
 53. ~~The "Wearing" card under her should go away after a few seconds.~~ Done in PR 9: it fades out after 3 seconds; a "Put on" card stays until she taps.
 54. ~~All plain buttons white with a gold outline, and a prettier font.~~ Done in PR 9: Cormorant Garamond everywhere; Sloane's painted arrows and signs unchanged.
+55. ~~Bug: the + was off center after the font change (the Cormorant "+" sits low and to one side).~~ Done in PR 9: the + is now drawn as a shape, so it is exactly centered.

@@ -498,9 +498,20 @@ export function ClosetScene({
           <Link
             href="/add"
             aria-label="Add an item"
-            className="btn-round text-3xl font-normal"
+            className="btn-round"
           >
-            +
+            {/* Drawn, not typed, so it sits exactly in the middle in any font. */}
+            <svg
+              viewBox="0 0 24 24"
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
           </Link>
         </div>
 

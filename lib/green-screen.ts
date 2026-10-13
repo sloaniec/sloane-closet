@@ -4,7 +4,7 @@
 export const SCREEN_GREEN = { r: 0, g: 177, b: 64 }; // #00b140
 const MAX_LONG_EDGE = 1600;
 
-function loadImage(src: string): Promise<HTMLImageElement> {
+export function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous"; // signed Storage links allow this
@@ -14,7 +14,11 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function toBlob(canvas: HTMLCanvasElement, type: string, quality?: number) {
+export function toBlob(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality?: number,
+) {
   return new Promise<Blob>((resolve, reject) =>
     canvas.toBlob(
       (b) => (b ? resolve(b) : reject(new Error("Couldn't save the picture"))),

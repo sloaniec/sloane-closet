@@ -27,7 +27,7 @@ async function SceneLoader({
 }: {
   searchParams: PageProps<"/">["searchParams"];
 }) {
-  const { look: lookParam } = await searchParams;
+  const { look: lookParam, mix: mixParam } = await searchParams;
   const supabase = await createClient();
   const prefs = await getPreferences(supabase);
 
@@ -132,6 +132,15 @@ async function SceneLoader({
       startingItemId={startingItem?.id ?? null}
       startingLook={withUrl(startingLook)}
       initialLook={withUrl(current)}
+      initialMix={mixedOutfit(mixParam, allItems)}
     />
   );
+}
+
+// A mixed outfit in the link (`?mix=<item id>,<item id>`): the closet puts
+// it together again in the browser. Only pieces still in her closet.
+function mixedOutfit(param: unknown, items: { id: string }[]) {
+  if (typeof param !== "string") return null;
+  const ids = param.split(",").filter((id) => items.some((i) => i.id === id));
+  return ids.length ? ids : null;
 }

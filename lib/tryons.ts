@@ -325,12 +325,11 @@ export type SavedLook = {
   resultUrl: string;
 };
 
-// Finished looks of the active photo that sit on `baseTryOnId` (or straight
-// on the photo when null): the outfits she can switch to for free from
-// there. Signed links included, so the browser can get them ready.
-export async function savedLooksOn(
+// Every finished look of the active photo, with signed links so the browser
+// can get them ready. The browser works out what each one is wearing (from
+// its base looks) and mixes them into new outfits for free.
+export async function finishedLooks(
   supabase: SupabaseClient,
-  baseTryOnId: string | null,
 ): Promise<SavedLook[]> {
   const { data: photo } = await supabase
     .from("person_photos")
@@ -338,15 +337,12 @@ export async function savedLooksOn(
     .eq("is_active", true)
     .maybeSingle();
   if (!photo) return [];
-  const query = supabase
+  const { data: rows } = await supabase
     .from("tryons")
     .select("id, item_id, base_tryon_id, result_path")
     .eq("person_photo_id", photo.id)
     .eq("status", "completed")
     .not("result_path", "is", null);
-  const { data: rows } = await (baseTryOnId
-    ? query.eq("base_tryon_id", baseTryOnId)
-    : query.is("base_tryon_id", null));
   if (!rows?.length) return [];
   const { data: signed } = await supabase.storage
     .from("closet")

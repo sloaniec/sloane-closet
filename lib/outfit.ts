@@ -34,21 +34,3 @@ export function wornItems(
   }
   return [...unknown, ...slots.values()];
 }
-
-// Putting a piece back on that she wore a moment ago: if everything she put
-// on since then only replaced that same piece, return the step to go back
-// to (free, since that picture is saved). Otherwise -1.
-export function stepToReturnTo(
-  itemIds: string[],
-  itemId: string,
-  kindOf: (id: string) => string | undefined,
-): number {
-  const slot = slotOf(kindOf(itemId));
-  if (!slot) return -1;
-  for (let i = itemIds.length - 2; i >= 0; i--) {
-    const since = itemIds.slice(i + 1);
-    if (!since.every((id) => slotOf(kindOf(id)) === slot)) return -1;
-    if (itemIds[i] === itemId) return i;
-  }
-  return -1;
-}

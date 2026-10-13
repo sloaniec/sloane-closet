@@ -6,7 +6,7 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 2. ~~Feature 2: My photo~~ Done in PR 2.
 3. ~~Feature 3: Add an item~~ Done in PR 3.
 4. ~~Feature 4: Try it on~~ Done in PR 4.
-5. Feature 5: Credits
+5. ~~Feature 5: Credits~~ Done in PR 5.
 6. Design the real app icon (placeholder until then)
 7. ~~Check: newer Next.js renamed `middleware.ts` to `proxy.ts`. Confirm which name the current version uses when building #1.~~ Done in PR 1: Next.js 16 uses `proxy.ts`.
 8. ~~Before first deploy: create Sloane's and Greg's accounts with "Auto Confirm User", then turn off "Allow new users to sign up".~~ Done by Sloane in the Supabase dashboard on 2026-10-12 (no PR, dashboard-only).
@@ -19,7 +19,7 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 15. ~~FASHN docs: `seed` defaults to 42, and the same seed with the same inputs reproduces the same image. Redo must send a new random seed, or it spends a credit on an identical result. Sloane approved 2026-10-12: Redo sends a new random seed. Build it in #4.~~ Done in PR 4.
 16. Idea: use FASHN `mode: "quality"` instead of `"balanced"` (docs: same 1 credit, about 12–17 s instead of about 8 s). Sloane to decide. 2026-10-12: Sloane chose to start with the normal version (v1.6, balanced); revisit after trying it.
 17. Idea: FASHN "Try-On Max" (docs: higher resolution, more item types, prompt-based customization). Different endpoint and likely a different price, so ask Greg. 2026-10-12: not now; start with v1.6 and see how it goes.
-18. Idea: show how much try-ons have cost, by counting completed try-ons in our own database (1 credit = $0.075 each). Could go with the credit balance in #5. FASHN's `GET /v1/credits` only returns the balance (`total`, `subscription`, `on_demand`), with no spending history, so our own count is the way. Sloane approved 2026-10-12: show both credits left and amount spent in #5.
+18. ~~Idea: show how much try-ons have cost, by counting completed try-ons in our own database (1 credit = $0.075 each). Could go with the credit balance in #5. FASHN's `GET /v1/credits` only returns the balance (`total`, `subscription`, `on_demand`), with no spending history, so our own count is the way. Sloane approved 2026-10-12: show both credits left and amount spent in #5.~~ Done in PR 5.
 19. Idea: logins for Sloane's brothers and boyfriend, each with their own closet and try-ons. Already supported: create each account in Supabase like #8 (sign-ups stay off). Try-ons from every account spend credits from Greg's FASHN account, so check with him.
 20. ~~Tapping an item in the closet opens nothing yet. The item screen comes with #4.~~ Done in PR 4.
 21. Lululemon blocks the preview: its security service answers "Access Denied" to any automated visit, so the screenshot option is the way in. Tested 2026-10-12: Everlane works (picture, name, $24.00 price); Aritzia also blocks.

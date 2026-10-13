@@ -169,8 +169,8 @@ Next to it, show what try-ons have cost, for example "12 credits left · 23 try-
 
 ### 6. Closet scene (home screen)
 
-- The home screen is a drawn scene. Each account picks its background in Profile: "Ocean closet" (Sloane's bright closet with an ocean view) or "City & ocean closet" (modern greys, for her older brother). The choice is saved in Supabase user metadata (`scene`).
-- A rail of her clothes runs along the bottom. Tap a piece to put it on, which layers it on top of the current look. Press and hold a piece to open its item screen.
+- The home screen is a scene: a background picture with Sloane standing in it. The backgrounds are illustrations Sloane made with an image tool, in `public/scenes/`. Each account picks one in Profile: "Ocean closet" (her bright beachy closet with an ocean view) or "City & ocean closet" (modern greys, for her older brother). The choice is saved in Supabase user metadata (`scene`).
+- Her clothes hang on hangers from a rod inside a closet cabinet under the scene, colored to match the background. Tap a piece to put it on, which layers it on top of the current look. Press and hold a piece to open its item screen.
 - **Layering:** a try-on can sit on an earlier try-on (`tryons.base_tryon_id`). The earlier result becomes FASHN's `model_image`. Saved combinations are free to show again. FASHN swaps clothes by type, so a new top replaces the top rather than going over it.
 - **Starting outfit:** one item per account (`closet_items.is_starting_outfit`), set from its item screen. The scene opens in it, and "Back to PJs" returns to it for free.
 - **Green screen:** "Cut me out" on a Profile photo runs FASHN `background-remove` once (1 credit, transparent PNG). The browser puts the cut-out on solid green (#00b140) and saves it as a new active photo (`person_photos.green_screen`). Try-ons on that photo keep the green, and the browser removes it (`lib/green-screen.ts`), so she stands in the scene. Without a green-screen photo, she shows in a gold mirror instead.

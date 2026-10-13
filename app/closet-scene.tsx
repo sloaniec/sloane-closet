@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CreditLine } from "@/components/credit-line";
-import { sceneFor } from "@/components/scenes";
+import { SceneImage, sceneFor, type Scene } from "@/components/scenes";
 import { keyOutGreen } from "@/lib/green-screen";
 import { pollUntilDone } from "@/lib/poll";
 import type { TryOnView } from "@/lib/tryons";
@@ -46,7 +46,7 @@ export function ClosetScene({
   startingLook,
   initialLook,
 }: Props) {
-  const { Art } = sceneFor(sceneId);
+  const scene = sceneFor(sceneId);
   const [look, setLook] = useState<Look | null>(initialLook);
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -181,8 +181,8 @@ export function ClosetScene({
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col">
-      <div className="relative h-[62vh] min-h-[420px] w-full overflow-hidden rounded-b-3xl shadow-sm">
-        <Art />
+      <div className="relative h-[54vh] min-h-[380px] w-full overflow-hidden rounded-b-3xl shadow-sm">
+        <SceneImage scene={scene} priority />
 
         {/* Corners: Profile and add clothes */}
         <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
@@ -256,7 +256,7 @@ export function ClosetScene({
         )}
       </div>
 
-      <div className="flex flex-col gap-3 px-4 pt-4">
+      <div className="flex flex-col gap-2 px-4 pt-3">
         {notice && (
           <p
             role="alert"
@@ -307,16 +307,17 @@ export function ClosetScene({
             <p className="text-center text-xs">
               Tap to put on · Hold for details
             </p>
-            <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 pt-1">
+            <ClosetRail scene={scene}>
               {items.map((item) => (
                 <RailCard
                   key={item.id}
                   item={item}
+                  hook={scene.rail.hook}
                   wearing={look?.itemIds.includes(item.id) ?? false}
                   onTap={() => putOn(item)}
                 />
               ))}
-            </ul>
+            </ClosetRail>
           </>
         )}
         {!startingItemId && items.length > 0 && (
@@ -333,10 +334,12 @@ export function ClosetScene({
 // Tap puts it on; press and hold opens its details (with Shop).
 function RailCard({
   item,
+  hook,
   wearing,
   onTap,
 }: {
   item: RailItem;
+  hook: string;
   wearing: boolean;
   onTap: () => void;
 }) {
@@ -350,7 +353,28 @@ function RailCard({
   }
 
   return (
-    <li className="w-24 shrink-0 snap-start">
+    <li className="flex w-20 shrink-0 snap-start flex-col items-center">
+      {/* Hanger: hook over the rod, shoulders down to the clothes */}
+      <svg
+        viewBox="0 0 96 30"
+        className="relative z-10 -mb-1 h-[26px] w-20"
+        aria-hidden="true"
+      >
+        <path
+          d="M48 22 V12 C48 6 56 6 56 11"
+          fill="none"
+          stroke={hook}
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M48 22 L14 29 M48 22 L82 29"
+          fill="none"
+          stroke={hook}
+          strokeWidth="2.6"
+          strokeLinecap="round"
+        />
+      </svg>
       <button
         type="button"
         onPointerDown={() => {
@@ -369,7 +393,7 @@ function RailCard({
         onPointerLeave={cancel}
         onPointerCancel={cancel}
         onContextMenu={(e) => e.preventDefault()}
-        className={`block w-full select-none overflow-hidden rounded-2xl bg-shell text-left shadow-sm transition active:scale-95 [-webkit-touch-callout:none] ${
+        className={`block w-full origin-top select-none overflow-hidden rounded-xl bg-shell text-left shadow-md transition active:rotate-1 active:scale-95 [-webkit-touch-callout:none] ${
           wearing ? "ring-4 ring-gold" : "ring-1 ring-seaglass"
         }`}
       >
@@ -385,5 +409,35 @@ function RailCard({
         </span>
       </button>
     </li>
+  );
+}
+
+// The inside of a closet: a wood cabinet with a warm strip light, a hanging
+// rod, and a shelf at the bottom. Colors follow the chosen background.
+function ClosetRail({
+  scene,
+  children,
+}: {
+  scene: Scene;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="relative -mx-2 overflow-hidden rounded-2xl border-[6px] shadow-[inset_0_8px_18px_rgba(0,0,0,0.14)]"
+      style={{
+        borderColor: "rgba(255,255,255,0.75)",
+        background: `repeating-linear-gradient(90deg, ${scene.rail.grain} 0 1px, transparent 1px 26px), linear-gradient(180deg, ${scene.rail.wood})`,
+      }}
+    >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-[#fff3d1]/90 to-transparent" />
+      <div
+        className="pointer-events-none absolute inset-x-2 top-[14px] h-2 rounded-full shadow-[0_2px_3px_rgba(0,0,0,0.25)]"
+        style={{ background: `linear-gradient(180deg, ${scene.rail.rod})` }}
+      />
+      <ul className="relative flex snap-x gap-4 overflow-x-auto px-4 pb-5 pt-1">
+        {children}
+      </ul>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-black/10" />
+    </div>
   );
 }

@@ -133,3 +133,12 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** Both backgrounds are one-point-perspective rooms with thin ink lines over soft marker washes (`components/sketch-room.tsx`). Each has a hanging rail on the left, drawers with knobs and cubbies on the right, a runner rug, and a light fixture. Sloane's ocean closet has white built-ins, sea-glass and sand washes, gold knobs, a palm-leaf chandelier, and an arched ocean window. Her brother's city closet has greys, dark ink, a linear light, and a gridded city-and-ocean window.
 - **Why:** Sloane shared a hand-drawn walk-in closet sketch she loves, and asked for that style with the beachy sea-glass colors kept.
 - **Rejected:** The earlier flat, front-on drawings.
+
+## 2026-10-13: Backgrounds are Sloane's own pictures, not drawn in code
+- **What:** The two backgrounds are illustrations Sloane made with an image tool (`public/scenes/ocean-closet.webp`, `public/scenes/city-closet.webp`). The code-drawn sketch rooms are removed.
+- **Why:** Drawings made in code looked too flat next to the style she wanted. Pictures she makes herself have real depth and texture, and they're hers to use. They're kept in the public repo, which is fine because they contain nothing personal.
+- **Rejected:** More code drawing; using someone else's artwork (not ours to publish).
+
+## 2026-10-13: The clothes area is the inside of a closet
+- **What:** Under the scene, her clothes hang on hangers from a rod in a wood cabinet with a warm strip light and a shelf. The colors follow the background: cream wood with a gold rod for the ocean closet, grey wood with a nickel rod for the city closet. The scene is a little shorter so the closet fits on a phone screen.
+- **Why:** Sloane asked for the clothes selection area to look like the inside of a closet.

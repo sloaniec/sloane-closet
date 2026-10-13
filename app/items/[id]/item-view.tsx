@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { CreditSummary } from "@/lib/spending";
 import type { TryOnView } from "@/lib/tryons";
 
 const POLL_MS = 2000;
 const POLL_LIMIT_MS = 60_000;
+const LOW_CREDITS = 10;
+const OUT_OF_CREDITS = "Out of credits.";
 
 type Props = {
   item: {
@@ -25,6 +28,24 @@ export function ItemView({ item, hasPhoto, initialTryOn }: Props) {
   const [notice, setNotice] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const pollStarted = useRef<number | null>(null);
+  const [summary, setSummary] = useState<CreditSummary | null>(null);
+
+  // Credits left and spending, loaded on open and after each finished run.
+  const completedKey = tryOn?.status === "completed" ? tryOn.resultUrl : null;
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/credits", { cache: "no-store" })
+      .then((res) => (res.ok ? (res.json() as Promise<CreditSummary>) : null))
+      .then((data) => {
+        if (!cancelled && data) setSummary(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [completedKey]);
+  const outOfCredits =
+    summary !== null && summary.credits !== null && summary.credits <= 0;
 
   const working = starting || tryOn?.status === "pending";
   const resultUrl = tryOn?.resultUrl ?? null;
@@ -62,6 +83,10 @@ export function ItemView({ item, hasPhoto, initialTryOn }: Props) {
   const message = notice ?? failure;
 
   async function start(redo: boolean) {
+    if (outOfCredits) {
+      setNotice(OUT_OF_CREDITS);
+      return;
+    }
     if (redo && !confirm("Uses 1 credit.")) return;
     setNotice(null);
     setShowOriginal(false);
@@ -73,7 +98,14 @@ export function ItemView({ item, hasPhoto, initialTryOn }: Props) {
         body: JSON.stringify({ itemId: item.id, redo }),
       });
       if (res.status === 409) {
-        setNotice("Add a photo of yourself in Profile first.");
+        const { error } = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        setNotice(
+          error === "no_credits"
+            ? OUT_OF_CREDITS
+            : "Add a photo of yourself in Profile first.",
+        );
       } else if (!res.ok) {
         setNotice("Something went wrong. Please try again.");
       } else {
@@ -170,6 +202,34 @@ export function ItemView({ item, hasPhoto, initialTryOn }: Props) {
           Shop
         </a>
       </div>
+
+      {summary && <CreditLine summary={summary} />}
     </div>
+  );
+}
+
+function CreditLine({ summary }: { summary: CreditSummary }) {
+  const { credits, tryOns, spent } = summary;
+  const low = credits !== null && credits < LOW_CREDITS;
+  const creditsText =
+    credits === null
+      ? null
+      : credits <= 0
+        ? "Out of credits"
+        : low
+          ? `Only ${credits} ${credits === 1 ? "credit" : "credits"} left`
+          : `${credits} credits left`;
+  return (
+    <p className="text-center text-xs text-seaglass-deep">
+      {creditsText && (
+        <>
+          <span className={low ? "font-semibold text-coral-orange" : ""}>
+            {creditsText}
+          </span>
+          {" · "}
+        </>
+      )}
+      {tryOns} {tryOns === 1 ? "try-on" : "try-ons"} · {spent} spent
+    </p>
   );
 }

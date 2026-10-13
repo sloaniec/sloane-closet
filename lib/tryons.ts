@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { checkTryOn, randomSeed, runTryOn } from "./fashn";
+import { checkTryOn, getCredits, randomSeed, runTryOn } from "./fashn";
 
 // A run with no answer after this long is treated as failed, so the
 // Try On button works again.
@@ -145,7 +145,7 @@ async function markFailed(
 
 export type StartResult =
   | { ok: true; row: TryOnRow }
-  | { ok: false; reason: "no_item" | "no_photo" | "not_allowed" };
+  | { ok: false; reason: "no_item" | "no_photo" | "no_credits" };
 
 // Try On (redo = false) or Redo (redo = true) for one item and the active
 // photo. Only spends a credit when there's no usable result yet, or on Redo.
@@ -179,6 +179,17 @@ export async function startTryOn(
     existing = await refreshTryOn(supabase, existing);
   }
 
+  // Out of credits: don't send anything to FASHN. (If FASHN can't say,
+  // carry on and let it decide.)
+  const startsNewRun =
+    !existing ||
+    existing.status === "failed" ||
+    (existing.status === "completed" && redo);
+  const credits = startsNewRun ? await getCredits() : null;
+  if (credits !== null && credits <= 0) {
+    return { ok: false, reason: "no_credits" };
+  }
+
   // Claim the row for a new run. The database's unique (item, photo) rule
   // and the status checks mean two quick taps can't start two runs.
   let claimed: TryOnRow | null = null;
@@ -201,7 +212,9 @@ export async function startTryOn(
         .eq("item_id", item.id)
         .eq("person_photo_id", photo.id)
         .maybeSingle<TryOnRow>();
-      return again.data ? { ok: true, row: again.data } : { ok: false, reason: "no_item" };
+      return again.data
+        ? { ok: true, row: again.data }
+        : { ok: false, reason: "no_item" };
     }
     claimed = data;
   } else if (existing.status === "pending") {
@@ -224,7 +237,9 @@ export async function startTryOn(
       .maybeSingle<TryOnRow>();
     if (!data) {
       const current = await getTryOn(supabase, existing.id);
-      return current ? { ok: true, row: current } : { ok: false, reason: "no_item" };
+      return current
+        ? { ok: true, row: current }
+        : { ok: false, reason: "no_item" };
     }
     claimed = data;
   }
@@ -232,11 +247,17 @@ export async function startTryOn(
   // Signed links FASHN can read for 10 minutes.
   const { data: links } = await supabase.storage
     .from("closet")
-    .createSignedUrls([photo.storage_path, item.image_path], FASHN_INPUT_URL_SECONDS);
+    .createSignedUrls(
+      [photo.storage_path, item.image_path],
+      FASHN_INPUT_URL_SECONDS,
+    );
   const modelImageUrl = links?.[0]?.signedUrl;
   const garmentImageUrl = links?.[1]?.signedUrl;
   if (!modelImageUrl || !garmentImageUrl) {
-    return { ok: true, row: await markFailed(supabase, claimed, "Couldn't read the pictures") };
+    return {
+      ok: true,
+      row: await markFailed(supabase, claimed, "Couldn't read the pictures"),
+    };
   }
 
   try {

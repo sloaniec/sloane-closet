@@ -95,3 +95,12 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** Migration 0002 adds `started_at` and `completed_runs`. Each completed run (first try or Redo) adds 1.
 - **Why:** Redo reuses the row, so counting rows would miss Redos. The spending tally in #5 adds these up.
 - **Rejected:** A separate table with one row per run (more than needed for now).
+
+## 2026-10-13: Credits line on the item screen
+- **What:** Under Try On and Shop: "42 credits left · 23 try-ons · $1.73 spent". Below 10 credits the first part turns orange: "Only 8 credits left". At 0 it reads "Out of credits", and tapping Try On or Redo says "Out of credits." and sends nothing to FASHN. The server checks too, before starting any new run. If FASHN's balance can't be reached, the try-on goes ahead and FASHN decides.
+- **Why:** Sloane chose the item screen (seen right before spending), the plain orange number, and stopping at zero.
+- **Rejected:** The Profile page or under the closet title; "Running low on credits — ask Dad to top up."; letting FASHN refuse at zero.
+
+## 2026-10-13: Spending counts this account's completed runs
+- **What:** "try-ons" is the sum of `tryons.completed_runs` for the signed-in account, Redos included. "spent" is that number × $0.075, worked out in tenths of a cent so it rounds right (23 → $1.73). "credits left" is Greg's shared FASHN balance.
+- **Why:** FASHN has no spending history. Each account sees only its own rows, so a brother's or boyfriend's try-ons show on their own screen, not Sloane's.

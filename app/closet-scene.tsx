@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -470,9 +471,15 @@ export function ClosetScene({
               <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" strokeLinecap="round" />
             </svg>
           </Link>
-          <span className="rounded-full bg-shell/80 px-3 py-1 text-sm font-semibold tracking-tight shadow-sm">
-            Sloane&apos;s Closet
-          </span>
+          <Image
+            src="/brand/sign.webp"
+            alt="Sloane's Closet"
+            width={900}
+            height={415}
+            priority
+            sizes="160px"
+            className="h-auto w-[min(160px,45vw)] drop-shadow-md"
+          />
           <Link
             href="/add"
             aria-label="Add an item"
@@ -491,12 +498,12 @@ export function ClosetScene({
               <img
                 src={standing.url}
                 alt="You, in your current outfit"
-                className="absolute bottom-[5%] left-1/2 z-10 h-[80%] w-auto max-w-none -translate-x-1/2 object-contain drop-shadow-xl"
+                className="absolute bottom-[5%] left-1/2 z-10 h-[76%] w-auto max-w-none -translate-x-1/2 object-contain drop-shadow-xl"
               />
             </>
           )
         ) : (
-          <div className="absolute bottom-[7%] left-[24%] top-[17%] z-10 w-[52%] overflow-hidden rounded-t-full border-[6px] border-gold bg-shell shadow-xl ring-4 ring-shell">
+          <div className="absolute bottom-[7%] left-[24%] top-[21%] z-10 w-[52%] overflow-hidden rounded-t-full border-[6px] border-gold bg-shell shadow-xl ring-4 ring-shell">
             {figureSrc && !photo?.greenScreen ? (
               // eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL
               <img

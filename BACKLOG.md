@@ -7,13 +7,13 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 3. ~~Feature 3: Add an item~~ Done in PR 3.
 4. ~~Feature 4: Try it on~~ Done in PR 4.
 5. ~~Feature 5: Credits~~ Done in PR 5.
-6. Design the real app icon (placeholder until then)
+6. ~~Design the real app icon (placeholder until then)~~ Done in PR 7: Sloane's gold "S" plaque with hibiscus is the icon, and her "Sloane's Closet" sign is the title.
 7. ~~Check: newer Next.js renamed `middleware.ts` to `proxy.ts`. Confirm which name the current version uses when building #1.~~ Done in PR 1: Next.js 16 uses `proxy.ts`.
 8. ~~Before first deploy: create Sloane's and Greg's accounts with "Auto Confirm User", then turn off "Allow new users to sign up".~~ Done by Sloane in the Supabase dashboard on 2026-10-12 (no PR, dashboard-only).
 9. ~~Run `supabase/migrations/0001_init.sql` in the Supabase SQL editor (Sloane).~~ Done by Sloane on 2026-10-12 ("Success. No rows returned"), for PR 1.
 10. ~~After #1 merges: import the repo into Vercel and add the three environment variables on the import screen (Sloane).~~ Done by Sloane on 2026-10-12; sign-in works on the live site.
 11. Idea: dark mode. The app is light-only for now so the beachy colors look the same everywhere.
-12. Idea: a special font for the "Sloane's Closet" title (currently the same clean font as everything else).
+12. Idea: a special font for the "Sloane's Closet" title (currently the same clean font as everything else). 2026-10-13: the title is now Sloane's sign picture (see #6).
 13. ~~Bug: `0001_init.sql` failed in the Supabase SQL editor ("syntax error at or near loop"). Replaced the loop with plain statements.~~ Done in PR 1.
 14. ~~Idea: more realistic try-ons by sending FASHN several photos, or body measurements. Check FASHN's current docs; as far as we know, try-on v1.6 takes one person photo and no measurements.~~ Answered 2026-10-12 from FASHN's v1.6 docs: one `model_image` only, no measurement inputs. Not possible with v1.6.
 15. ~~FASHN docs: `seed` defaults to 42, and the same seed with the same inputs reproduces the same image. Redo must send a new random seed, or it spends a credit on an identical result. Sloane approved 2026-10-12: Redo sends a new random seed. Build it in #4.~~ Done in PR 4.
@@ -40,8 +40,8 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 36. Idea: let each person upload their own background picture in Profile.
 37. ~~Bug: choosing "City & ocean closet" in Profile didn't switch. The choice was saved, but the app read it from the sign-in token, which keeps the old value until it renews (about an hour).~~ Done in PR 6: the app reads choices fresh and renews the sign-in after a change.
 38. ~~Use Sloane's updated room pictures (island further back) and her closet-shelf pictures for the hanging area, with a separate shelves choice in Profile.~~ Done in PR 6.
-39. Sort clothes by kind (top, bottom, dress, outerwear, shoes, hat) into closet sections made from parts of the cabinet picture.
-40. Arrows beside Sloane to browse tops (upper) and bottoms (lower); Put on spends, browsing is free.
+39. ~~Sort clothes by kind (top, bottom, dress, outerwear, shoes, hat) into closet sections made from parts of the cabinet picture.~~ Done in PR 7.
+40. ~~Arrows beside Sloane to browse tops (upper) and bottoms (lower); Put on spends, browsing is free.~~ Done in PR 7.
 41. ~~Run `supabase/migrations/0004_item_kinds.sql` in the Supabase SQL editor before merging #39 (Sloane).~~ Done by Sloane on 2026-10-13.
 42. ~~Idea: an "empty shelves" version of each cabinet picture (no bags, books, coral, or towels where clothes go), so her clothes don't sit on top of painted objects. See the image-tool prompt in PR 7.~~ Done in PR 7: Claude cleared the shelves by painting over objects with clean wall from the same picture.
 43. Idea: try on shoes and hats with FASHN Try-On Max (likely costs more; ask Greg).

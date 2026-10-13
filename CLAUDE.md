@@ -89,7 +89,7 @@ Set up:
 - the app and Tailwind
 - the Supabase clients (browser, server, and middleware)
 - the sign-in page and an empty closet screen
-- the web manifest, with a placeholder icon until Sloane designs one
+- the web manifest, with a placeholder icon until Sloane designs one (done: her "S" plaque is the icon, and her sign `public/brand/sign.webp` is the title on sign-in and in the scene)
 - `.env.example`
 - husky and secretlint
 - `0001_init.sql` with all tables, policies, the storage bucket, the storage policies, and `meta.whoami()`

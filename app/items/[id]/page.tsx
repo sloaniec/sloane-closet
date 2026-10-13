@@ -46,6 +46,7 @@ async function Item({ params }: { params: Promise<{ id: string }> }) {
       .select("id")
       .eq("item_id", item.id)
       .eq("person_photo_id", photo.id)
+      .is("base_tryon_id", null)
       .maybeSingle();
     const full = row ? await getTryOn(supabase, row.id) : null;
     if (full) tryOn = await toView(supabase, await refreshTryOn(supabase, full));

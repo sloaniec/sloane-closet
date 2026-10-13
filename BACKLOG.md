@@ -30,3 +30,5 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 26. New look: the home screen is a scene of Sloane in a clean, beachy closet with an ocean view.
 27. Starting outfit: she starts the scene wearing the Victoria's Secret SoSoft Modal Short Pajama Set (Coconut White & Blue Stripes).
 28. Layering: pick clothes from the closet and add them one on top of another on the same look.
+29. Changeable backgrounds: the clothes stay on Sloane, and the scene behind her can change. Needs her cut out of each look.
+30. A scene for her older brother: a more masculine, modern closet in greys, with a city and ocean view from the window.

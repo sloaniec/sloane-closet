@@ -42,6 +42,6 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 38. ~~Use Sloane's updated room pictures (island further back) and her closet-shelf pictures for the hanging area, with a separate shelves choice in Profile.~~ Done in PR 6.
 39. Sort clothes by kind (top, bottom, dress, outerwear, shoes, hat) into closet sections made from parts of the cabinet picture.
 40. Arrows beside Sloane to browse tops (upper) and bottoms (lower); Put on spends, browsing is free.
-41. Run `supabase/migrations/0004_item_kinds.sql` in the Supabase SQL editor before merging #39 (Sloane).
+41. ~~Run `supabase/migrations/0004_item_kinds.sql` in the Supabase SQL editor before merging #39 (Sloane).~~ Done by Sloane on 2026-10-13.
 42. ~~Idea: an "empty shelves" version of each cabinet picture (no bags, books, coral, or towels where clothes go), so her clothes don't sit on top of painted objects. See the image-tool prompt in PR 7.~~ Done in PR 7: Claude cleared the shelves by painting over objects with clean wall from the same picture.
 43. Idea: try on shoes and hats with FASHN Try-On Max (likely costs more; ask Greg).

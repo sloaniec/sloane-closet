@@ -151,3 +151,43 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 ## 2026-10-13: Read background choices fresh, not from the sign-in token
 - **What:** `lib/preferences.ts` reads choices with `supabase.auth.getUser()`. Saving a choice also renews the sign-in.
 - **Why:** The sign-in token carries a copy of the account's settings that only updates when it renews, so a new choice didn't show up.
+
+## 2026-10-13: Clothes are sorted into closet sections by kind
+- **What:** Each item has a kind: Top, Bottom, Dress, Outerwear, Shoes, or Hat. It's picked when adding, and can be changed on the item screen. The closet shows sections made from parts of Sloane's cabinet picture: Hats on the top shelf, Tops and Dresses & outerwear on the hanging rod, Bottoms on the folded shelf, Shoes on the lower shelf. Existing items were sorted from their old FASHN category, and "Let the app guess" items became Tops.
+- **Why:** Sloane wants each kind of clothing in its own part of the closet, like a real one.
+- **Rejected:** Keeping FASHN's "Let the app guess" category (the kind now decides the category).
+
+## 2026-10-13: Arrows browse; only "Put on" spends
+- **What:** Arrows beside her step through tops (upper) and bottoms (lower) and show a card with the piece and **Put on**. Browsing never calls FASHN.
+- **Why:** Sloane wanted arrows to rotate through her clothes. Putting on every piece as she flips would spend a credit per new combination. (She asked how this works; it's built this way pending her confirmation.)
+- **Rejected:** Putting on each piece as she browses.
+
+## 2026-10-13: Shoes and hats are look-and-shop only
+- **What:** Shoes and hats sit on their shelves. Tapping one opens it (with Shop). Try On is hidden, and the server refuses (`not_wearable`).
+- **Why:** FASHN v1.6 only dresses tops, bottoms, and one-pieces. Sloane chose to store and shop them for now.
+- **Rejected:** Try-On Max for shoes and hats (backlog #43, ask Greg).
+
+## 2026-10-13: "Remove from closet" hides an item
+- **What:** It sets `archived_at` and clears the starting outfit. The photo and try-ons stay.
+- **Why:** Sloane chose hiding over deleting, so it's safer if she taps it by mistake.
+- **Rejected:** Deleting the item, its photo, and its try-ons for good.
+
+## 2026-10-13: Later pieces replace earlier ones of the same type
+- **What:** "Wearing" (gold ring, the arrow card) shows only what's actually on: the last top or outerwear, the last bottom, or a dress (which replaces both). Switching back to a piece she just had returns to its saved look for free, as long as only that same slot changed since. Otherwise the piece is tried on top of the current look (1 credit).
+- **Why:** Sloane found that after putting on a black shirt, the replaced tank still counted as "Wearing" and couldn't be put back on.
+- **Rejected:** Treating every piece ever put on as still worn.
+
+## 2026-10-13: Saved combinations go straight on; swaps replace the last piece
+- **What:** When the arrows land on a piece that's already been made in this combination, it goes on immediately, with no "Put on" and no credit. New combinations still show **Put on**. A new piece of the same type as the last one (top after top) is tried on the look before that piece, instead of on top of it.
+- **Why:** Sloane didn't want to tap Put on for things she'd already paid for, and switching was slow. Swapping from the earlier look matches what FASHN does anyway, reuses more saved looks, and avoids stacking generations (sharper pictures).
+- **Rejected:** Always showing Put on; stacking every new piece on the latest look.
+
+## 2026-10-13: Free mix-and-match of paid pieces
+- **What:** Each piece costs 1 credit the first time it's tried on. After that, any outfit made only of tried-on pieces shows for free: a saved picture of exactly that outfit if one exists, otherwise a picture the browser puts together from each piece's own try-on (it copies the part of each picture that changed when the piece went on, bottoms first, tops over them). Mixed outfits get a small "Mixed" tag and a **Make it exact** button, which shows how many credits it uses ("Uses N credits.") before running FASHN, reusing any steps already saved. Redo is hidden on a mixed outfit. A mixed outfit's link is `/?mix=<item ids>`. Replaces the 2026-10-13 rule that a new combination always needs Put on, and `GET /api/tryons/saved` became `GET /api/tryons/looks` (all finished looks at once).
+- **Why:** Sloane was charged again for a shirt she'd already paid for, just because she'd changed her bottoms. She chose free mixing with an optional exact version.
+- **Rejected:** Charging for every new combination (the old way); always running FASHN for exact pictures.
+
+## 2026-10-13: Sloane's logo
+- **What:** Sloane made the logo with her image tool: a cream wood plaque with a gold script "S" and hibiscus (app icon, cropped square; iPhone rounds the corners) and a matching "Sloane's Closet" sign (`public/brand/sign.webp`, background made see-through). The sign replaces the text title on the sign-in page and hangs at the top of the closet scene. To make room, her mirror starts a little lower and her standing figure is a little smaller.
+- **Why:** Replaces the placeholder icon (backlog #6) with Sloane's own design.
+- **Rejected:** Claude's four drawn logo sketches (gold hanger, gold mirror, beach day, boutique).

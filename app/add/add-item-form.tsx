@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CATEGORIES, type Category } from "@/lib/categories";
+import { KINDS, type Kind } from "@/lib/kinds";
 import { resizeToJpeg } from "@/lib/resize-image";
 import { createClient } from "@/lib/supabase/client";
 import { saveItem } from "./actions";
@@ -32,8 +32,10 @@ export function AddItemForm() {
   const [title, setTitle] = useState("");
   const [store, setStore] = useState<string | null>(null);
   const [priceText, setPriceText] = useState<string | null>(null);
-  const [category, setCategory] = useState<Category>("auto");
-  const [picture, setPicture] = useState<{ blob: Blob; src: string } | null>(null);
+  const [kind, setKind] = useState<Kind>("top");
+  const [picture, setPicture] = useState<{ blob: Blob; src: string } | null>(
+    null,
+  );
   const [needsScreenshot, setNeedsScreenshot] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +54,9 @@ export function AddItemForm() {
   async function lookUp() {
     const url = extractLink(link);
     if (!url) {
-      setError("That doesn't look like a link. Copy it from the store and paste it here.");
+      setError(
+        "That doesn't look like a link. Copy it from the store and paste it here.",
+      );
       return;
     }
     setError(null);
@@ -142,7 +146,7 @@ export function AddItemForm() {
         title,
         store,
         priceText,
-        category,
+        kind,
         imagePath: path,
       });
       // saveItem redirects to the closet on success.
@@ -203,8 +207,7 @@ export function AddItemForm() {
     >
       {needsScreenshot && (
         <p className="rounded-2xl bg-sunshine/40 p-4 text-sm">
-          This store didn&apos;t share a picture. Paste or upload one
-          instead.
+          This store didn&apos;t share a picture. Paste or upload one instead.
         </p>
       )}
 
@@ -267,22 +270,22 @@ export function AddItemForm() {
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium">Type of clothing</legend>
-        <div className="grid grid-cols-2 gap-2">
-          {CATEGORIES.map((c) => (
+        <div className="grid grid-cols-3 gap-2">
+          {KINDS.map((c) => (
             <label
               key={c.value}
               className={`cursor-pointer rounded-xl px-3 py-3 text-center text-sm font-medium ring-1 transition ${
-                category === c.value
+                kind === c.value
                   ? "bg-seaglass ring-seaglass-deep"
                   : "bg-shell ring-seaglass"
               }`}
             >
               <input
                 type="radio"
-                name="category"
+                name="kind"
                 value={c.value}
-                checked={category === c.value}
-                onChange={() => setCategory(c.value)}
+                checked={kind === c.value}
+                onChange={() => setKind(c.value)}
                 className="sr-only"
               />
               {c.label}

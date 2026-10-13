@@ -27,7 +27,7 @@ export function ScenePicker({
       <Choices
         options={SHELVES}
         current={shelves}
-        aspect="aspect-[665/450]"
+        aspect="aspect-[4/3]"
         disabled={pending}
         onPick={(id) => startTransition(() => chooseShelves(id))}
       />

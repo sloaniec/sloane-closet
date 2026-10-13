@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { checkPrediction, getCredits, randomSeed, runTryOn } from "./fashn";
+import { canTryOn, categoryForKind } from "./kinds";
 
 // A run with no answer after this long is treated as failed, so the
 // Try On button works again.
@@ -152,7 +153,12 @@ export type StartResult =
   | { ok: true; row: TryOnRow }
   | {
       ok: false;
-      reason: "no_item" | "no_photo" | "no_credits" | "bad_base";
+      reason:
+        | "no_item"
+        | "no_photo"
+        | "no_credits"
+        | "bad_base"
+        | "not_wearable";
     };
 
 // Try On (redo = false) or Redo (redo = true) for one item, either straight
@@ -165,24 +171,28 @@ export async function startTryOn(
   redo: boolean,
   baseTryOnId: string | null = null,
 ): Promise<StartResult> {
-  const { data: item } = await supabase
-    .from("closet_items")
-    .select("id, image_path, category")
-    .eq("id", itemId)
-    .maybeSingle();
+  // Look up the item, her active photo, and the look to layer on, all at
+  // once (one trip to the database instead of three).
+  const [{ data: item }, { data: photo }, base] = await Promise.all([
+    supabase
+      .from("closet_items")
+      .select("id, image_path, kind")
+      .eq("id", itemId)
+      .maybeSingle(),
+    supabase
+      .from("person_photos")
+      .select("id, storage_path")
+      .eq("is_active", true)
+      .maybeSingle(),
+    baseTryOnId ? getTryOn(supabase, baseTryOnId) : Promise.resolve(null),
+  ]);
   if (!item) return { ok: false, reason: "no_item" };
-
-  const { data: photo } = await supabase
-    .from("person_photos")
-    .select("id, storage_path")
-    .eq("is_active", true)
-    .maybeSingle();
+  if (!canTryOn(item.kind)) return { ok: false, reason: "not_wearable" };
   if (!photo) return { ok: false, reason: "no_photo" };
 
   // Layering: dress the picture of her already wearing the earlier pieces.
   let modelPath = photo.storage_path;
   if (baseTryOnId) {
-    const base = await getTryOn(supabase, baseTryOnId);
     if (
       !base ||
       base.status !== "completed" ||
@@ -291,7 +301,7 @@ export async function startTryOn(
     const fashnId = await runTryOn({
       modelImageUrl,
       garmentImageUrl,
-      category: item.category,
+      category: categoryForKind(item.kind),
       seed: redo ? randomSeed() : undefined,
     });
     const { data } = await supabase
@@ -306,4 +316,52 @@ export async function startTryOn(
     const message = err instanceof Error ? err.message : "Try-on failed";
     return { ok: true, row: await markFailed(supabase, claimed, message) };
   }
+}
+
+export type SavedLook = {
+  id: string;
+  itemId: string;
+  baseTryOnId: string | null;
+  resultUrl: string;
+};
+
+// Every finished look of the active photo, with signed links so the browser
+// can get them ready. The browser works out what each one is wearing (from
+// its base looks) and mixes them into new outfits for free.
+export async function finishedLooks(
+  supabase: SupabaseClient,
+): Promise<SavedLook[]> {
+  const { data: photo } = await supabase
+    .from("person_photos")
+    .select("id")
+    .eq("is_active", true)
+    .maybeSingle();
+  if (!photo) return [];
+  const { data: rows } = await supabase
+    .from("tryons")
+    .select("id, item_id, base_tryon_id, result_path")
+    .eq("person_photo_id", photo.id)
+    .eq("status", "completed")
+    .not("result_path", "is", null);
+  if (!rows?.length) return [];
+  const { data: signed } = await supabase.storage
+    .from("closet")
+    .createSignedUrls(
+      rows.map((r) => r.result_path as string),
+      SIGNED_URL_SECONDS,
+    );
+  const url = new Map((signed ?? []).map((s) => [s.path, s.signedUrl]));
+  return rows.flatMap((r) => {
+    const resultUrl = url.get(r.result_path as string);
+    return resultUrl
+      ? [
+          {
+            id: r.id,
+            itemId: r.item_id,
+            baseTryOnId: r.base_tryon_id,
+            resultUrl,
+          },
+        ]
+      : [];
+  });
 }

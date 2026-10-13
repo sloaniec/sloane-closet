@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { kindInfo } from "@/lib/kinds";
 import { getPreferences } from "@/lib/preferences";
 import { createClient } from "@/lib/supabase/server";
 import { getTryOn, type TryOnRow } from "@/lib/tryons";
@@ -26,7 +27,7 @@ async function SceneLoader({
 }: {
   searchParams: PageProps<"/">["searchParams"];
 }) {
-  const { look: lookParam } = await searchParams;
+  const { look: lookParam, mix: mixParam } = await searchParams;
   const supabase = await createClient();
   const prefs = await getPreferences(supabase);
 
@@ -38,7 +39,7 @@ async function SceneLoader({
       .maybeSingle(),
     supabase
       .from("closet_items")
-      .select("id, title, image_path, is_starting_outfit")
+      .select("id, title, image_path, is_starting_outfit, kind")
       .is("archived_at", null)
       .order("created_at", { ascending: false }),
   ]);
@@ -52,11 +53,13 @@ async function SceneLoader({
     if (row.status !== "completed" || !row.result_path) return null;
     if (row.person_photo_id !== photo.id) return null;
     const itemIds = [row.item_id];
+    const chain = [row.id];
     let base = row.base_tryon_id;
     for (let i = 0; base && i < MAX_LAYERS; i++) {
       const parent = await getTryOn(supabase, base);
       if (!parent) break;
       itemIds.unshift(parent.item_id);
+      chain.unshift(parent.id);
       base = parent.base_tryon_id;
     }
     return {
@@ -64,6 +67,7 @@ async function SceneLoader({
       baseId: row.base_tryon_id,
       path: row.result_path,
       itemIds,
+      chain,
     };
   }
 
@@ -108,6 +112,8 @@ async function SceneLoader({
     id: i.id,
     title: i.title ?? "",
     imageUrl: url.get(i.image_path) ?? "",
+    kind: i.kind,
+    section: kindInfo(i.kind).section,
   }));
 
   return (
@@ -126,6 +132,15 @@ async function SceneLoader({
       startingItemId={startingItem?.id ?? null}
       startingLook={withUrl(startingLook)}
       initialLook={withUrl(current)}
+      initialMix={mixedOutfit(mixParam, allItems)}
     />
   );
+}
+
+// A mixed outfit in the link (`?mix=<item id>,<item id>`): the closet puts
+// it together again in the browser. Only pieces still in her closet.
+function mixedOutfit(param: unknown, items: { id: string }[]) {
+  if (typeof param !== "string") return null;
+  const ids = param.split(",").filter((id) => items.some((i) => i.id === id));
+  return ids.length ? ids : null;
 }

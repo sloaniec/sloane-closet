@@ -15,9 +15,10 @@ export type Scene = {
 export type Shelves = {
   id: string;
   label: string;
-  image: string; // cropped to the hanging section
-  // Where the gold rod runs, as % of the picture.
-  rod: { top: number; left: number; right: number };
+  image: string; // the whole cabinet, for the Profile choice
+  // Parts of the cabinet picture, one per closet section.
+  parts: { hats: string; hanging: string; folded: string; shoes: string };
+  rodTop: number; // where the gold rod runs in `hanging`, as % from the top
   hook: string;
 };
 
@@ -40,15 +41,27 @@ export const SHELVES: Shelves[] = [
   {
     id: "ocean-shelves",
     label: "Cream & gold",
-    image: "/shelves/ocean-shelves.webp",
-    rod: { top: 14.4, left: 3, right: 9 },
+    image: "/shelves/ocean-cabinet.webp",
+    parts: {
+      hats: "/shelves/ocean-hats-empty.webp",
+      hanging: "/shelves/ocean-tops-empty.webp",
+      folded: "/shelves/ocean-bottoms-empty.webp",
+      shoes: "/shelves/ocean-shoes-empty.webp",
+    },
+    rodTop: 21,
     hook: "#c8901f",
   },
   {
     id: "city-shelves",
     label: "Grey & brass",
-    image: "/shelves/city-shelves.webp",
-    rod: { top: 13, left: 3, right: 6 },
+    image: "/shelves/city-cabinet.webp",
+    parts: {
+      hats: "/shelves/city-hats-empty.webp",
+      hanging: "/shelves/city-tops-empty.webp",
+      folded: "/shelves/city-bottoms-empty.webp",
+      shoes: "/shelves/city-shoes-empty.webp",
+    },
+    rodTop: 18.5,
     hook: "#a8822f",
   },
 ];

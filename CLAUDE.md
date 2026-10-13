@@ -89,7 +89,7 @@ Set up:
 - the app and Tailwind
 - the Supabase clients (browser, server, and middleware)
 - the sign-in page and an empty closet screen
-- the web manifest, with a placeholder icon until Sloane designs one
+- the web manifest, with a placeholder icon until Sloane designs one (done: her "S" plaque is the icon, and her sign `public/brand/sign.webp` is the title on sign-in and in the scene)
 - `.env.example`
 - husky and secretlint
 - `0001_init.sql` with all tables, policies, the storage bucket, the storage policies, and `meta.whoami()`
@@ -175,7 +175,13 @@ Next to it, show what try-ons have cost, for example "12 credits left · 23 try-
 - **Layering:** a try-on can sit on an earlier try-on (`tryons.base_tryon_id`). The earlier result becomes FASHN's `model_image`. Saved combinations are free to show again. FASHN swaps clothes by type, so a new top replaces the top rather than going over it.
 - **Starting outfit:** one item per account (`closet_items.is_starting_outfit`), set from its item screen. The scene opens in it, and "Back to PJs" returns to it for free.
 - **Green screen:** "Cut me out" on a Profile photo runs FASHN `background-remove` once (1 credit, transparent PNG). The browser puts the cut-out on solid green (#00b140) and saves it as a new active photo (`person_photos.green_screen`). Try-ons on that photo keep the green, and the browser removes it (`lib/green-screen.ts`), so she stands in the scene. Without a green-screen photo, she shows in a gold mirror instead.
-- The current look is in the URL (`/?look=<tryon id>`).
+- The current look is in the URL (`/?look=<tryon id>`, or `/?mix=<item ids>` for a mixed outfit).
+- **Kinds and closet sections:** each item has a `kind` (`top`, `bottom`, `dress`, `outerwear`, `shoes`, `hat`; see `lib/kinds.ts`), which sets its closet section and its FASHN category. Top to bottom, the sections are: Hats (top shelf), Tops (hanging rod), Dresses & outerwear (hanging rod), Bottoms (folded shelf), and Shoes (lower shelf). Each is a part of Sloane's cabinet picture with the shelves emptied (`public/shelves/{set}-{hats,tops,bottoms,shoes}-empty.webp`). FASHN v1.6 can't put on shoes or hats, so they're for looking at and Shop only: tapping one opens it, and the server refuses to try it on (`not_wearable`).
+- **What's worn:** `lib/outfit.ts` works out what's actually on from the pieces put on, in order: a new top or outerwear replaces the top, a new bottom replaces the bottom, and a dress replaces both.
+- **Arrows:** two pairs beside her, at chest height for tops and lower for bottoms. They browse that section. A piece that's free to wear (see Mix and match) goes straight on. Otherwise a card shows it with **Put on**, and only Put on spends a credit.
+- **Mix and match:** each piece costs 1 credit once. Any outfit made only of tried-on pieces is free: a saved try-on of exactly that outfit (`lib/mix.ts`), or else a picture the browser mixes from each piece's own try-on (`lib/compose.ts`: copies where the picture changed when the piece went on; bottoms first, tops over them). Mixed outfits show a "Mixed" tag and **Make it exact** (says "Uses N credits." first, reuses saved steps). Mixed links are `/?mix=<item ids>`. A new piece is tried on the saved look closest to the new outfit.
+- **Speed:** `GET /api/tryons/looks` lists every finished look of her active photo once. The scene keeps prepared (green-removed) and mixed pictures in memory, gets the next arrow piece ready, and keeps the current picture up until the next is ready.
+- **Remove from closet** (item screen) hides an item (`archived_at`). Its photo and try-ons stay in the database.
 
 If anything in this file disagrees with FASHN's current docs (https://docs.fashn.ai/api-reference/tryon-v1-6), stop and tell Sloane what's different before changing the code.
 

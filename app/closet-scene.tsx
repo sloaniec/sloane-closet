@@ -1,31 +1,36 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CreditLine } from "@/components/credit-line";
 import {
-  FillImage,
-  sceneFor,
-  shelvesFor,
-  type Shelves,
-} from "@/components/scenes";
+  ClosetSections,
+  scrollItemIntoView,
+  type RailItem,
+} from "@/components/closet-sections";
+import { FillImage, sceneFor, shelvesFor } from "@/components/scenes";
+import { composeOutfit } from "@/lib/compose";
 import { keyOutGreen } from "@/lib/green-screen";
+import { canTryOn } from "@/lib/kinds";
+import { Wardrobe, outfitWith, wearOrder, type Finished } from "@/lib/mix";
+import { wornItems } from "@/lib/outfit";
 import { pollUntilDone } from "@/lib/poll";
 import type { TryOnView } from "@/lib/tryons";
 import { useCreditSummary } from "@/lib/use-credit-summary";
-
-const HOLD_MS = 550;
 
 export type Look = {
   id: string;
   baseId: string | null;
   path: string;
-  itemIds: string[];
+  itemIds: string[]; // every piece put on, in order
+  chain: string[]; // the saved look after each of those steps
   imageUrl?: string;
+  mixed?: boolean; // made in the browser from several try-ons
 };
 
-export type RailItem = { id: string; title: string; imageUrl: string };
+export type { RailItem };
 
 type Props = {
   sceneId: string | null;
@@ -35,6 +40,7 @@ type Props = {
   startingItemId: string | null;
   startingLook: Look | null;
   initialLook: Look | null;
+  initialMix: string[] | null;
 };
 
 const ERRORS: Record<string, string> = {
@@ -42,7 +48,15 @@ const ERRORS: Record<string, string> = {
   no_credits: "Out of credits.",
   bad_base:
     "That outfit is out of date. Starting again from your starting outfit.",
+  not_wearable: "Shoes and hats can't be tried on yet.",
 };
+
+// The arrows beside her browse these sections.
+const ARROW_ROWS = [
+  { section: "tops", label: "tops", top: "36%" },
+  { section: "bottoms", label: "bottoms", top: "64%" },
+] as const;
+type Browse = { section: "tops" | "bottoms"; index: number } | null;
 
 export function ClosetScene({
   sceneId,
@@ -52,47 +66,183 @@ export function ClosetScene({
   startingItemId,
   startingLook,
   initialLook,
+  initialMix,
 }: Props) {
   const scene = sceneFor(sceneId);
   const shelves = shelvesFor(shelvesId, scene);
   const [look, setLook] = useState<Look | null>(initialLook);
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const summary = useCreditSummary(look?.id);
+  const [browse, setBrowse] = useState<Browse>(null);
+  const landedOn = useRef<string | null>(null);
+  const [checking, setChecking] = useState<string | null>(null);
+  const [runs, setRuns] = useState(0);
+  const router = useRouter();
+
+  // What she's actually wearing: later pieces replace earlier ones of the
+  // same type.
+  const kindById = new Map(items.map((i) => [i.id, i.kind]));
+  const kindOf = (id: string) => kindById.get(id);
+  const worn = look ? wornItems(look.itemIds, kindOf) : [];
+  const summary = useCreditSummary(runs);
+
+  // Every finished try-on of her photo, loaded once. Everything free
+  // (saved outfits and mixes) is worked out from these.
+  const wardrobe = useRef<Promise<Wardrobe> | null>(null);
+  function getWardrobe() {
+    wardrobe.current ??= fetch("/api/tryons/looks", { cache: "no-store" })
+      .then((res) => (res.ok ? (res.json() as Promise<Finished[]>) : []))
+      .catch(() => [] as Finished[])
+      .then((looks) => new Wardrobe(looks, kindOf));
+    return wardrobe.current;
+  }
 
   // On a green-screen photo she stands in the scene; otherwise she shows
-  // in the mirror.
+  // in the mirror. Pictures are prepared once (green removed) and kept, so
+  // switching outfits is instant. The current picture stays up until the
+  // next one is ready.
   const figureSrc = look?.imageUrl ?? photo?.url ?? null;
-  const [keyed, setKeyed] = useState<{ src: string; url: string } | null>(null);
+  const prepared = useRef(new Map<string, Promise<string>>());
+  function prepare(url: string): Promise<string> {
+    if (!photo?.greenScreen) return Promise.resolve(url);
+    let ready = prepared.current.get(url);
+    if (!ready) {
+      ready = keyOutGreen(url);
+      ready.catch(() => prepared.current.delete(url));
+      prepared.current.set(url, ready);
+    }
+    return ready;
+  }
+  const [standing, setStanding] = useState<{ src: string; url: string } | null>(
+    null,
+  );
   useEffect(() => {
     if (!photo?.greenScreen || !figureSrc) return;
-    let url: string | null = null;
-    let cancelled = false;
-    keyOutGreen(figureSrc)
-      .then((u) => {
-        url = u;
-        if (cancelled) URL.revokeObjectURL(u);
-        else setKeyed({ src: figureSrc, url: u });
+    let current = true;
+    prepare(figureSrc)
+      .then((url) => {
+        if (current) setStanding({ src: figureSrc, url });
       })
       .catch(() => {});
     return () => {
-      cancelled = true;
-      if (url) URL.revokeObjectURL(url);
+      current = false;
     };
+    // prepare() is stable in effect for a given photo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [figureSrc, photo?.greenScreen]);
-  const standing =
-    photo?.greenScreen && keyed?.src === figureSrc ? keyed.url : null;
+
+  // Mixed outfits, kept so going back to one is instant.
+  const mixes = useRef(new Map<string, Promise<string>>());
+  function mixPicture(
+    w: Wardrobe,
+    plan: NonNullable<ReturnType<Wardrobe["mixPlan"]>>,
+  ): Promise<string> {
+    const urlOf = (id: string | null) =>
+      (id && w.get(id)?.resultUrl) || photo?.url || "";
+    const startUrl = urlOf(plan.start);
+    const layers = plan.layers.map((l) => ({
+      url: l.resultUrl,
+      baseUrl: urlOf(l.baseTryOnId),
+      kind: kindOf(l.itemId),
+    }));
+    const key = [startUrl, ...layers.map((l) => l.url)].join("|");
+    let ready = mixes.current.get(key);
+    if (!ready) {
+      ready = composeOutfit(startUrl, layers).then((blob) =>
+        URL.createObjectURL(blob),
+      );
+      ready.catch(() => mixes.current.delete(key));
+      mixes.current.set(key, ready);
+    }
+    return ready;
+  }
+
+  function savedLook(w: Wardrobe, id: string): Look {
+    const found = w.get(id)!;
+    return {
+      id,
+      baseId: found.baseTryOnId,
+      path: "",
+      itemIds: w.itemIdsOf(id) ?? [found.itemId],
+      chain: w.chainOf(id) ?? [id],
+      imageUrl: found.resultUrl,
+    };
+  }
+
+  // The outfit as a picture without FASHN: a saved try-on of exactly
+  // these pieces, or a mix of the pieces' own try-ons. Null when a piece
+  // hasn't been tried on yet.
+  async function freeLook(outfit: string[]): Promise<Look | null> {
+    const w = await getWardrobe();
+    const found = w.exact(outfit, look && !look.mixed ? look.id : null);
+    if (found) return savedLook(w, found.id);
+    const plan = photo ? w.mixPlan(outfit, startingLook?.id ?? null) : null;
+    if (!plan) return null;
+    const ordered = wearOrder(outfit, kindOf);
+    return {
+      id: `mix:${ordered.join(",")}`,
+      baseId: null,
+      path: "",
+      itemIds: ordered,
+      chain: [],
+      imageUrl: await mixPicture(w, plan),
+      mixed: true,
+    };
+  }
+
+  // Shows the outfit for free if it can. Returns false when it needs a new
+  // try-on. Only the latest request wins, so quick taps can't land out of
+  // order; `stillWanted` lets a slow answer be ignored too.
+  const latest = useRef(0);
+  async function wearFree(
+    outfit: string[],
+    stillWanted: () => boolean = () => true,
+  ): Promise<boolean> {
+    const ticket = ++latest.current;
+    let next: Look | null;
+    try {
+      next = await freeLook(outfit);
+    } catch {
+      if (ticket === latest.current) {
+        setNotice("Couldn't put that outfit together. Try again?");
+      }
+      return true;
+    }
+    if (!next) return false;
+    await prepare(next.imageUrl!).catch(() => {});
+    if (ticket !== latest.current || !stillWanted()) return true;
+    setNotice(null);
+    showLook(next);
+    return true;
+  }
+
+  // Get an outfit ready ahead of time (for the next arrow tap).
+  function warmUp(outfit: string[]) {
+    freeLook(outfit)
+      .then((next) => next?.imageUrl && prepare(next.imageUrl))
+      .catch(() => {});
+  }
 
   function showLook(next: Look | null) {
     setLook(next);
-    window.history.replaceState(null, "", next ? `/?look=${next.id}` : "/");
+    window.history.replaceState(
+      null,
+      "",
+      !next
+        ? "/"
+        : next.mixed
+          ? `/?mix=${next.itemIds.join(",")}`
+          : `/?look=${next.id}`,
+    );
   }
 
-  async function run(
-    body: { itemId: string; baseTryOnId: string | null; redo: boolean },
-    itemIds: string[],
-  ) {
-    setWorking(true);
+  // One FASHN try-on (or a saved one, if the server has it). Returns the
+  // finished look, or null with a message shown.
+  async function tryOn(body: {
+    itemId: string;
+    baseTryOnId: string | null;
+    redo: boolean;
+  }): Promise<Finished | null> {
     setNotice(null);
     try {
       const res = await fetch("/api/tryons", {
@@ -107,8 +257,11 @@ export function ClosetScene({
         setNotice(
           ERRORS[error ?? ""] ?? "Something went wrong. Please try again.",
         );
-        if (error === "bad_base") showLook(startingLook);
-        return;
+        if (error === "bad_base") {
+          wardrobe.current = null;
+          showLook(startingLook);
+        }
+        return null;
       }
       if (!res.ok) throw new Error();
       const view = await pollUntilDone(
@@ -122,68 +275,175 @@ export function ClosetScene({
         },
       );
       if (view.status === "completed" && view.resultUrl) {
-        showLook({
+        const finished = {
           id: view.id,
-          baseId: view.baseTryOnId,
-          path: "",
-          itemIds,
-          imageUrl: view.resultUrl,
-        });
-      } else if (view.status === "pending") {
-        setNotice("This is taking longer than usual. Check back in a minute.");
-      } else {
-        setNotice(
-          view.error === "pose"
+          itemId: view.itemId,
+          baseTryOnId: view.baseTryOnId,
+          resultUrl: view.resultUrl,
+        };
+        (await getWardrobe()).add(finished);
+        setRuns((n) => n + 1);
+        return finished;
+      }
+      setNotice(
+        view.status === "pending"
+          ? "This is taking longer than usual. Check back in a minute."
+          : view.error === "pose"
             ? "Try a clearer full-body photo. This one didn't use a credit."
             : "That didn't work, and it didn't use a credit. Try again?",
-        );
-      }
+      );
     } catch {
       setNotice("Something went wrong. Please try again.");
-    } finally {
-      setWorking(false);
+    }
+    return null;
+  }
+
+  // Shows a saved look, with its picture ready first.
+  async function showSaved(id: string) {
+    const w = await getWardrobe();
+    const next = savedLook(w, id);
+    await prepare(next.imageUrl!).catch(() => {});
+    latest.current++;
+    showLook(next);
+  }
+
+  // Arrows: step through a section. A piece that's free to wear (saved or
+  // mixable) goes straight on; otherwise "Put on" shows.
+  function step(section: "tops" | "bottoms", delta: 1 | -1) {
+    const list = items.filter((i) => i.section === section);
+    if (list.length === 0) return;
+    const from =
+      browse?.section === section
+        ? browse.index
+        : Math.max(
+            -1,
+            list.findIndex((i) => worn.includes(i.id)),
+          );
+    const index =
+      from === -1 && delta === -1
+        ? list.length - 1
+        : (from + delta + list.length) % list.length;
+    setBrowse({ section, index });
+    scrollItemIntoView(list[index].id);
+
+    const item = list[index];
+    landedOn.current = item.id;
+    if (photo && canTryOn(item.kind) && !worn.includes(item.id)) {
+      setChecking(item.id);
+      void wearFree(
+        outfitWith(worn, item.id, kindOf),
+        () => landedOn.current === item.id,
+      ).finally(() => setChecking((c) => (c === item.id ? null : c)));
+    }
+    // Get the next one in this direction ready too.
+    const next = list[(index + delta + list.length) % list.length];
+    if (photo && canTryOn(next.kind) && !worn.includes(next.id)) {
+      warmUp(outfitWith(worn, next.id, kindOf));
     }
   }
+  const browsing = browse
+    ? items.filter((i) => i.section === browse.section)[browse.index]
+    : null;
 
   function putOn(item: RailItem) {
     if (working) return;
+    setBrowse(null);
+    if (!canTryOn(item.kind)) {
+      router.push(`/items/${item.id}`);
+      return;
+    }
     if (!photo) return setNotice(ERRORS.no_photo);
-    const wearing = look?.itemIds ?? [];
-    if (wearing.includes(item.id)) {
+    if (worn.includes(item.id)) {
       return setNotice("You're already wearing this.");
     }
-    void run({ itemId: item.id, baseTryOnId: look?.id ?? null, redo: false }, [
-      ...wearing,
-      item.id,
-    ]);
+    const outfit = outfitWith(worn, item.id, kindOf);
+    void (async () => {
+      if (await wearFree(outfit)) return;
+      // A piece she hasn't tried on yet: one try-on (1 credit), on the
+      // saved look closest to the new outfit. Then mix if needed.
+      setWorking(true);
+      const w = await getWardrobe();
+      const base = w.closest(outfit)?.id ?? startingLook?.id ?? null;
+      const done = await tryOn({
+        itemId: item.id,
+        baseTryOnId: base,
+        redo: false,
+      });
+      if (done) await wearFree(outfit);
+      setWorking(false);
+    })();
+  }
+
+  // A mixed outfit as a real try-on picture: puts the pieces on one at a
+  // time, reusing any steps already saved. Says the cost first.
+  async function makeExact() {
+    if (working || !look?.mixed) return;
+    const outfit = worn;
+    const w = await getWardrobe();
+    const plan = w.exactPlan(outfit, startingLook?.id ?? null);
+    if (
+      plan.runs > 0 &&
+      !confirm(`Uses ${plan.runs} credit${plan.runs === 1 ? "" : "s"}.`)
+    ) {
+      return;
+    }
+    setWorking(true);
+    let base = plan.start;
+    let finished = true;
+    for (const itemId of plan.itemIds) {
+      const next =
+        w.step(base, itemId) ??
+        (await tryOn({ itemId, baseTryOnId: base, redo: false }));
+      if (!next) {
+        finished = false; // the message is already showing
+        break;
+      }
+      base = next.id;
+    }
+    if (finished && base) await showSaved(base);
+    setWorking(false);
   }
 
   function backToStart() {
     if (working) return;
     if (startingLook) {
       setNotice(null);
+      latest.current++;
       return showLook(startingLook);
     }
     if (startingItemId && photo) {
+      latest.current++;
       showLook(null);
-      void run({ itemId: startingItemId, baseTryOnId: null, redo: false }, [
-        startingItemId,
-      ]);
+      setWorking(true);
+      void tryOn({ itemId: startingItemId, baseTryOnId: null, redo: false })
+        .then((done) => (done ? showSaved(done.id) : undefined))
+        .finally(() => setWorking(false));
     }
   }
 
   function redo() {
-    if (working || !look) return;
+    if (working || !look || look.mixed) return;
     if (!confirm("Uses 1 credit.")) return;
-    void run(
-      {
-        itemId: look.itemIds[look.itemIds.length - 1],
-        baseTryOnId: look.baseId,
-        redo: true,
-      },
-      look.itemIds,
-    );
+    setWorking(true);
+    void tryOn({
+      itemId: look.itemIds[look.itemIds.length - 1],
+      baseTryOnId: look.baseId,
+      redo: true,
+    })
+      .then((done) => (done ? showSaved(done.id) : undefined))
+      .finally(() => setWorking(false));
   }
+
+  // Load the try-ons when the closet opens (and rebuild a mixed outfit
+  // from the link).
+  useEffect(() => {
+    if (!photo) return;
+    void getWardrobe().then(() => {
+      if (initialMix) void wearFree(initialMix);
+    });
+    // Runs once when the closet opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const atStart = startingLook ? look?.id === startingLook.id : look === null;
 
@@ -211,9 +471,15 @@ export function ClosetScene({
               <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" strokeLinecap="round" />
             </svg>
           </Link>
-          <span className="rounded-full bg-shell/80 px-3 py-1 text-sm font-semibold tracking-tight shadow-sm">
-            Sloane&apos;s Closet
-          </span>
+          <Image
+            src="/brand/sign.webp"
+            alt="Sloane's Closet"
+            width={900}
+            height={415}
+            priority
+            sizes="160px"
+            className="h-auto w-[min(160px,45vw)] drop-shadow-md"
+          />
           <Link
             href="/add"
             aria-label="Add an item"
@@ -224,18 +490,20 @@ export function ClosetScene({
         </div>
 
         {/* Her */}
-        {standing ? (
-          <>
-            <span className="absolute bottom-[5%] left-1/2 h-4 w-40 -translate-x-1/2 rounded-[50%] bg-tide/20 blur-md" />
-            {/* eslint-disable-next-line @next/next/no-img-element -- generated cut-out */}
-            <img
-              src={standing}
-              alt="You, in your current outfit"
-              className="absolute bottom-[5%] left-1/2 z-10 h-[80%] w-auto max-w-none -translate-x-1/2 object-contain drop-shadow-xl"
-            />
-          </>
+        {photo?.greenScreen ? (
+          standing && (
+            <>
+              <span className="absolute bottom-[5%] left-1/2 h-4 w-40 -translate-x-1/2 rounded-[50%] bg-tide/20 blur-md" />
+              {/* eslint-disable-next-line @next/next/no-img-element -- generated cut-out */}
+              <img
+                src={standing.url}
+                alt="You, in your current outfit"
+                className="absolute bottom-[5%] left-1/2 z-10 h-[76%] w-auto max-w-none -translate-x-1/2 object-contain drop-shadow-xl"
+              />
+            </>
+          )
         ) : (
-          <div className="absolute bottom-[7%] left-[24%] top-[17%] z-10 w-[52%] overflow-hidden rounded-t-full border-[6px] border-gold bg-shell shadow-xl ring-4 ring-shell">
+          <div className="absolute bottom-[7%] left-[24%] top-[21%] z-10 w-[52%] overflow-hidden rounded-t-full border-[6px] border-gold bg-shell shadow-xl ring-4 ring-shell">
             {figureSrc && !photo?.greenScreen ? (
               // eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL
               <img
@@ -251,6 +519,75 @@ export function ClosetScene({
                 Add a photo of yourself
               </Link>
             ) : null}
+          </div>
+        )}
+
+        {look?.mixed && (
+          <span
+            className="absolute left-4 top-[15%] z-20 rounded-full bg-shell/90 px-3 py-1 text-xs font-semibold text-tide shadow ring-1 ring-seaglass"
+            title="Put together from your try-ons. Make it exact for a new picture."
+          >
+            Mixed
+          </span>
+        )}
+
+        {/* Arrows beside her: browse tops (upper) and bottoms (lower) */}
+        {photo &&
+          ARROW_ROWS.map((row) =>
+            items.some((i) => i.section === row.section) ? (
+              <div
+                key={row.section}
+                className="pointer-events-none absolute inset-x-2 z-20 flex justify-between"
+                style={{ top: row.top }}
+              >
+                {([-1, 1] as const).map((delta) => (
+                  <button
+                    key={delta}
+                    type="button"
+                    disabled={working}
+                    onClick={() => step(row.section, delta)}
+                    aria-label={`${delta === -1 ? "Previous" : "Next"} ${row.label}`}
+                    className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-shell/90 text-2xl leading-none text-tide shadow ring-1 ring-seaglass transition active:scale-90 disabled:opacity-50"
+                  >
+                    {delta === -1 ? "‹" : "›"}
+                  </button>
+                ))}
+              </div>
+            ) : null,
+          )}
+
+        {/* What the arrows landed on, with Put on */}
+        {browsing && !working && (
+          <div
+            className="absolute left-1/2 z-20 flex w-[min(15rem,70%)] -translate-x-1/2 items-center gap-2 rounded-2xl bg-shell/95 p-2 shadow-lg ring-1 ring-seaglass"
+            style={{ bottom: "3%" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL */}
+            <img
+              src={browsing.imageUrl}
+              alt=""
+              className="h-14 w-11 shrink-0 rounded-lg object-cover"
+            />
+            <span className="min-w-0 flex-1 truncate text-sm font-medium">
+              {browsing.title}
+            </span>
+            {checking === browsing.id ? (
+              <span className="shrink-0 px-3 text-lg text-seaglass-deep">
+                …
+              </span>
+            ) : worn.includes(browsing.id) ? (
+              <span className="shrink-0 px-2 text-xs text-seaglass-deep">
+                Wearing
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => putOn(browsing)}
+                className="shrink-0 rounded-full bg-sunshine px-3 py-2 text-sm font-semibold text-tide shadow-sm"
+              >
+                Put on
+              </button>
+            )}
           </div>
         )}
 
@@ -291,15 +628,26 @@ export function ClosetScene({
                 Back to PJs
               </button>
             )}
-            {look && (
+            {look?.mixed ? (
               <button
                 type="button"
                 disabled={working}
-                onClick={redo}
+                onClick={() => void makeExact()}
                 className="rounded-full bg-shell px-5 py-2 text-sm font-semibold text-tide shadow-sm ring-1 ring-seaglass transition active:scale-[0.98] disabled:opacity-60"
               >
-                Redo
+                Make it exact
               </button>
+            ) : (
+              look && (
+                <button
+                  type="button"
+                  disabled={working}
+                  onClick={redo}
+                  className="rounded-full bg-shell px-5 py-2 text-sm font-semibold text-tide shadow-sm ring-1 ring-seaglass transition active:scale-[0.98] disabled:opacity-60"
+                >
+                  Redo
+                </button>
+              )
             )}
           </div>
         )}
@@ -313,19 +661,16 @@ export function ClosetScene({
         ) : (
           <>
             <p className="text-center text-xs">
-              Tap to put on · Hold for details
+              Tap to put on · Hold for details · Arrows browse tops &amp;
+              bottoms
             </p>
-            <ClosetRail shelves={shelves}>
-              {items.map((item) => (
-                <RailCard
-                  key={item.id}
-                  item={item}
-                  hook={shelves.hook}
-                  wearing={look?.itemIds.includes(item.id) ?? false}
-                  onTap={() => putOn(item)}
-                />
-              ))}
-            </ClosetRail>
+            <ClosetSections
+              shelves={shelves}
+              items={items}
+              wearing={worn}
+              highlighted={browsing?.id ?? null}
+              onTap={putOn}
+            />
           </>
         )}
         {!startingItemId && items.length > 0 && (
@@ -335,116 +680,6 @@ export function ClosetScene({
           </p>
         )}
       </div>
-    </div>
-  );
-}
-
-// Tap puts it on; press and hold opens its details (with Shop).
-function RailCard({
-  item,
-  hook,
-  wearing,
-  onTap,
-}: {
-  item: RailItem;
-  hook: string;
-  wearing: boolean;
-  onTap: () => void;
-}) {
-  const router = useRouter();
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const held = useRef(false);
-
-  function cancel() {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = null;
-  }
-
-  return (
-    <li className="flex w-20 shrink-0 snap-start flex-col items-center">
-      {/* Hanger: hook over the rod, shoulders down to the clothes */}
-      <svg
-        viewBox="0 0 96 30"
-        className="relative z-10 -mb-1 h-[26px] w-20"
-        aria-hidden="true"
-      >
-        <path
-          d="M48 22 V12 C48 6 56 6 56 11"
-          fill="none"
-          stroke={hook}
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M48 22 L12 29 M48 22 L84 29"
-          fill="none"
-          stroke="#c98f62"
-          strokeWidth="3.4"
-          strokeLinecap="round"
-        />
-      </svg>
-      <button
-        type="button"
-        onPointerDown={() => {
-          held.current = false;
-          cancel();
-          timer.current = setTimeout(() => {
-            held.current = true;
-            router.push(`/items/${item.id}`);
-          }, HOLD_MS);
-        }}
-        onPointerUp={() => {
-          const wasHeld = held.current;
-          cancel();
-          if (!wasHeld) onTap();
-        }}
-        onPointerLeave={cancel}
-        onPointerCancel={cancel}
-        onContextMenu={(e) => e.preventDefault()}
-        className={`block w-full origin-top select-none overflow-hidden rounded-xl bg-shell text-left shadow-md transition active:rotate-1 active:scale-95 [-webkit-touch-callout:none] ${
-          wearing ? "ring-4 ring-gold" : "ring-1 ring-seaglass"
-        }`}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL */}
-        <img
-          src={item.imageUrl}
-          alt=""
-          draggable={false}
-          className="pointer-events-none aspect-[3/4] w-full object-cover"
-        />
-        <span className="block truncate px-2 py-1 text-xs font-medium">
-          {item.title}
-        </span>
-      </button>
-    </li>
-  );
-}
-
-// The inside of a closet: Sloane's shelves picture, with her clothes
-// hanging on hangers from its gold rod. Scrolls sideways along the rod.
-function ClosetRail({
-  shelves,
-  children,
-}: {
-  shelves: Shelves;
-  children: React.ReactNode;
-}) {
-  const { top, left, right } = shelves.rod;
-  return (
-    <div className="relative -mx-2 aspect-[665/450] overflow-hidden rounded-2xl shadow-md">
-      <FillImage src={shelves.image} />
-      <ul
-        className="absolute bottom-0 flex snap-x gap-3 overflow-x-auto"
-        style={{
-          top: `calc(${top}% - 7px)`,
-          left: `${left}%`,
-          right: `${right}%`,
-          paddingLeft: "4%",
-          paddingRight: "4%",
-        }}
-      >
-        {children}
-      </ul>
     </div>
   );
 }

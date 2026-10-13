@@ -31,9 +31,10 @@ async function Item({ params }: { params: Promise<{ id: string }> }) {
   const { data: item } = await supabase
     .from("closet_items")
     .select(
-      "id, title, store, price_text, product_url, image_path, is_starting_outfit",
+      "id, title, store, price_text, product_url, image_path, is_starting_outfit, kind",
     )
     .eq("id", id)
+    .is("archived_at", null)
     .maybeSingle();
   if (!item) notFound();
 
@@ -72,6 +73,7 @@ async function Item({ params }: { params: Promise<{ id: string }> }) {
       }}
       hasPhoto={Boolean(photo)}
       isStartingOutfit={item.is_starting_outfit}
+      kind={item.kind}
       initialTryOn={tryOn}
     />
   );

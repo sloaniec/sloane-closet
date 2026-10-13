@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { isCategory } from "@/lib/categories";
+import { categoryForKind, isKind } from "@/lib/kinds";
 import { parseHttpUrl } from "@/lib/safe-fetch";
 import { getSignedInUser } from "@/lib/supabase/require-user";
 
@@ -10,7 +10,7 @@ export type NewItem = {
   title: string;
   store: string | null;
   priceText: string | null;
-  category: string;
+  kind: string;
   imagePath: string;
 };
 
@@ -36,7 +36,8 @@ export async function saveItem(item: NewItem): Promise<{ error: string }> {
     title: title.slice(0, 300),
     store: item.store?.slice(0, 200) || null,
     price_text: item.priceText?.slice(0, 50) || null,
-    category: isCategory(item.category) ? item.category : "auto",
+    kind: isKind(item.kind) ? item.kind : "top",
+    category: categoryForKind(item.kind),
     image_path: item.imagePath,
   });
   if (error) return { error: "Couldn't save. Please try again." };

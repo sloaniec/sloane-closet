@@ -33,5 +33,6 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 29. Changeable backgrounds: the clothes stay on Sloane, and the scene behind her can change. Needs her cut out of each look.
 30. A scene for her older brother: a more masculine, modern closet in greys, with a city and ocean view from the window.
 31. ~~Run `supabase/migrations/0003_layers_and_starting_outfit.sql` in the Supabase SQL editor before merging #26-#29 (Sloane).~~ Done by Sloane on 2026-10-13 ("Success").
-32. Test the green screen for real: "Cut me out" on a photo (1 credit), then put on one piece (1 credit). Check the edges, then tune `lib/green-screen.ts` if needed.
+32. ~~Test the green screen for real: "Cut me out" on a photo (1 credit), then put on one piece (1 credit). Check the edges, then tune `lib/green-screen.ts` if needed.~~ Done by Sloane on 2026-10-13: works, edges look good.
 33. Green clothes would be partly erased by the green screen. If that happens, switch to a color clothes don't use.
+34. ~~Redraw both closets in an interior-design sketch style (ink lines, soft marker washes, room in perspective), keeping the beachy sea-glass colors.~~ Done in PR 6.

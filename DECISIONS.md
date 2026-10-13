@@ -128,3 +128,8 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** "City & ocean closet": modern greys, dark shelves, a black-framed window onto a city skyline and the ocean.
 - **Why:** Sloane asked for a more masculine, modern closet for her older brother.
 - **Where it's saved:** each person's choice is on their own account (Supabase user metadata), so his account opens in his scene.
+
+## 2026-10-13: Closets drawn like an interior designer's marker sketch
+- **What:** Both backgrounds are one-point-perspective rooms with thin ink lines over soft marker washes (`components/sketch-room.tsx`). Each has a hanging rail on the left, drawers with knobs and cubbies on the right, a runner rug, and a light fixture. Sloane's ocean closet has white built-ins, sea-glass and sand washes, gold knobs, a palm-leaf chandelier, and an arched ocean window. Her brother's city closet has greys, dark ink, a linear light, and a gridded city-and-ocean window.
+- **Why:** Sloane shared a hand-drawn walk-in closet sketch she loves, and asked for that style with the beachy sea-glass colors kept.
+- **Rejected:** The earlier flat, front-on drawings.

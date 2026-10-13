@@ -68,6 +68,8 @@ export function ClosetScene({
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [browse, setBrowse] = useState<Browse>(null);
+  const landedOn = useRef<string | null>(null);
+  const [checking, setChecking] = useState<string | null>(null);
   const router = useRouter();
 
   // What she's actually wearing: later pieces replace earlier ones of the
@@ -95,17 +97,19 @@ export function ClosetScene({
     setBrowse({ section, index });
     scrollItemIntoView(list[index].id);
 
-    // Already made this combination? Put it straight on (free).
+    // Already made in this combination? Put it straight on (free).
     const item = list[index];
-    if (!worn.includes(item.id)) {
-      const place = placeFor(item);
-      const ready = savedFor(place.base, item.id);
-      if (ready) void showSaved(ready, place);
+    landedOn.current = item.id;
+    if (canTryOn(item.kind) && !worn.includes(item.id)) {
+      setChecking(item.id);
+      void wearForFree(item, () => landedOn.current === item.id).finally(() =>
+        setChecking((c) => (c === item.id ? null : c)),
+      );
     }
     // Get the next one in this direction ready too.
     const next = list[(index + delta + list.length) % list.length];
-    const nextSaved = savedFor(placeFor(next).base, next.id);
-    if (nextSaved) void prepare(nextSaved.id, nextSaved.resultUrl);
+    const nextSaved = findSaved(next);
+    if (nextSaved) void prepare(nextSaved.found.id, nextSaved.found.resultUrl);
   }
   const browsing = browse
     ? items.filter((i) => i.section === browse.section)[browse.index]
@@ -191,6 +195,61 @@ export function ClosetScene({
       itemIds: [...look.itemIds, item.id],
       chain: look.chain,
     };
+  }
+
+  // Every way a saved look for this piece could exist from here: as a swap
+  // for the last piece, or added on top of the current look (outfits made
+  // before swaps existed were built that way).
+  function placesFor(item: RailItem) {
+    const places = [placeFor(item)];
+    if (look && places[0].base !== look.id) {
+      places.push({
+        base: look.id,
+        itemIds: [...look.itemIds, item.id],
+        chain: look.chain,
+      });
+    }
+    return places;
+  }
+  function findSaved(item: RailItem) {
+    for (const place of placesFor(item)) {
+      const found = savedFor(place.base, item.id);
+      if (found) return { found, place };
+    }
+    return null;
+  }
+  async function lookUpSaved(item: RailItem) {
+    const known = findSaved(item);
+    if (known) return known;
+    const bases = [...new Set(placesFor(item).map((p) => p.base ?? ""))];
+    await Promise.all(
+      bases.map((base) =>
+        fetch(`/api/tryons/saved?base=${base}`, { cache: "no-store" })
+          .then((res) => (res.ok ? (res.json() as Promise<SavedLook[]>) : []))
+          .then((looks) => looks.forEach(remember))
+          .catch(() => {}),
+      ),
+    );
+    return findSaved(item);
+  }
+
+  // Puts a piece on without FASHN if that's possible: going back to an
+  // earlier step of this outfit, or a saved look. Returns false when it
+  // would need a new try-on. `stillWanted` lets a slow answer be ignored if
+  // she has already moved on.
+  async function wearForFree(
+    item: RailItem,
+    stillWanted: () => boolean = () => true,
+  ): Promise<boolean> {
+    const back = look ? stepToReturnTo(look.itemIds, item.id, kindOf) : -1;
+    if (look && back >= 0) {
+      await returnTo(look, back);
+      return true;
+    }
+    const known = await lookUpSaved(item);
+    if (!known) return false;
+    if (stillWanted()) await showSaved(known.found, known.place);
+    return true;
   }
 
   // Shows a saved look once its picture is ready. Only the latest request
@@ -300,28 +359,20 @@ export function ClosetScene({
     if (worn.includes(item.id)) {
       return setNotice("You're already wearing this.");
     }
-    // Switching back to a piece she just had on: reuse that saved look.
-    const back = look ? stepToReturnTo(look.itemIds, item.id, kindOf) : -1;
-    if (look && back >= 0) {
-      void returnTo(look, back);
-      return;
-    }
-    const place = placeFor(item);
-    const ready = savedFor(place.base, item.id);
-    if (ready) {
-      void showSaved(ready, place);
-      return;
-    }
-    void run(
-      { itemId: item.id, baseTryOnId: place.base, redo: false },
-      place.itemIds,
-      place.chain,
-    );
+    void (async () => {
+      if (await wearForFree(item)) return;
+      const place = placeFor(item);
+      void run(
+        { itemId: item.id, baseTryOnId: place.base, redo: false },
+        place.itemIds,
+        place.chain,
+      );
+    })();
   }
 
   // Shows an earlier saved step of this outfit. Free: no FASHN call.
   async function returnTo(from: Look, index: number) {
-    setWorking(true);
+    const ticket = ++latest.current;
     setNotice(null);
     try {
       const res = await fetch(`/api/tryons/${from.chain[index]}`, {
@@ -330,7 +381,7 @@ export function ClosetScene({
       const view = res.ok ? ((await res.json()) as TryOnView) : null;
       if (view?.status !== "completed" || !view.resultUrl) throw new Error();
       await prepare(view.id, view.resultUrl).catch(() => {});
-      latest.current++;
+      if (ticket !== latest.current) return;
       showLook({
         id: view.id,
         baseId: index > 0 ? from.chain[index - 1] : null,
@@ -341,8 +392,6 @@ export function ClosetScene({
       });
     } catch {
       setNotice("Something went wrong. Please try again.");
-    } finally {
-      setWorking(false);
     }
   }
 
@@ -487,7 +536,11 @@ export function ClosetScene({
             <span className="min-w-0 flex-1 truncate text-sm font-medium">
               {browsing.title}
             </span>
-            {worn.includes(browsing.id) ? (
+            {checking === browsing.id ? (
+              <span className="shrink-0 px-3 text-lg text-seaglass-deep">
+                …
+              </span>
+            ) : worn.includes(browsing.id) ? (
               <span className="shrink-0 px-2 text-xs text-seaglass-deep">
                 Wearing
               </span>

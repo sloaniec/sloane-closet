@@ -27,3 +27,6 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 23. Idea: an iPhone Shortcut in Safari's Share menu ("Add to Sloane's Closet") that grabs the product photo from the page on her phone, like Messages does for link previews, so blocked stores still work without a screenshot.
 24. ~~Run `supabase/migrations/0002_tryon_runs.sql` in the Supabase SQL editor before merging #4 (Sloane).~~ Done by Sloane on 2026-10-13 ("Success. No rows returned").
 25. Idea: a way to remove or archive items from the closet (`archived_at` is ready in the database).
+26. New look: the home screen is a scene of Sloane in a clean, beachy closet with an ocean view.
+27. Starting outfit: she starts the scene wearing the Victoria's Secret SoSoft Modal Short Pajama Set (Coconut White & Blue Stripes).
+28. Layering: pick clothes from the closet and add them one on top of another on the same look.

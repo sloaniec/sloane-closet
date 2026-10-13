@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   if (!result.ok) {
     return Response.json(
       { error: result.reason },
-      { status: result.reason === "no_photo" ? 409 : 404 },
+      { status: result.reason === "no_item" ? 404 : 409 },
     );
   }
   return Response.json(await toView(user.supabase, result.row));

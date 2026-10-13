@@ -58,7 +58,9 @@ export async function runTryOn(inputs: TryOnInputs): Promise<string> {
     error?: unknown;
   } | null;
   if (!res.ok || !body?.id || body.error) {
-    throw new Error(describeError(body?.error) ?? `FASHN answered ${res.status}`);
+    throw new Error(
+      describeError(body?.error) ?? `FASHN answered ${res.status}`,
+    );
   }
   return body.id;
 }
@@ -74,7 +76,11 @@ export async function checkTryOn(fashnId: string): Promise<FashnStatus> {
 }
 
 export function parseStatus(body: unknown): FashnStatus {
-  const b = (body ?? {}) as { status?: string; output?: unknown; error?: unknown };
+  const b = (body ?? {}) as {
+    status?: string;
+    output?: unknown;
+    error?: unknown;
+  };
   if (b.status === "completed") {
     const first = Array.isArray(b.output) ? b.output[0] : null;
     const image = typeof first === "string" ? decodeDataUri(first) : null;
@@ -83,7 +89,10 @@ export function parseStatus(body: unknown): FashnStatus {
       : { state: "failed", error: "FASHN returned no image" };
   }
   if (b.status === "failed" || b.status === "canceled") {
-    return { state: "failed", error: describeError(b.error) ?? "Try-on failed" };
+    return {
+      state: "failed",
+      error: describeError(b.error) ?? "Try-on failed",
+    };
   }
   return { state: "pending" };
 }
@@ -102,4 +111,25 @@ function describeError(error: unknown): string | null {
   const e = error as { name?: unknown; message?: unknown };
   const parts = [e.name, e.message].filter((p) => typeof p === "string" && p);
   return parts.length ? parts.join(": ") : JSON.stringify(error);
+}
+
+// Greg's remaining FASHN credits, or null if FASHN can't be reached.
+export async function getCredits(): Promise<number | null> {
+  try {
+    const res = await fetch(`${API}/credits`, {
+      headers: headers(),
+      cache: "no-store",
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!res.ok) return null;
+    return parseCredits(await res.json());
+  } catch {
+    return null;
+  }
+}
+
+export function parseCredits(body: unknown): number | null {
+  const total = (body as { credits?: { total?: unknown } } | null)?.credits
+    ?.total;
+  return typeof total === "number" && Number.isFinite(total) ? total : null;
 }

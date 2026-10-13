@@ -53,11 +53,13 @@ async function SceneLoader({
     if (row.status !== "completed" || !row.result_path) return null;
     if (row.person_photo_id !== photo.id) return null;
     const itemIds = [row.item_id];
+    const chain = [row.id];
     let base = row.base_tryon_id;
     for (let i = 0; base && i < MAX_LAYERS; i++) {
       const parent = await getTryOn(supabase, base);
       if (!parent) break;
       itemIds.unshift(parent.item_id);
+      chain.unshift(parent.id);
       base = parent.base_tryon_id;
     }
     return {
@@ -65,6 +67,7 @@ async function SceneLoader({
       baseId: row.base_tryon_id,
       path: row.result_path,
       itemIds,
+      chain,
     };
   }
 

@@ -11,6 +11,7 @@ import {
 } from "@/components/closet-sections";
 import { FillImage, sceneFor, shelvesFor } from "@/components/scenes";
 import { canTryOn } from "@/lib/kinds";
+import { stepToReturnTo, wornItems } from "@/lib/outfit";
 import { keyOutGreen } from "@/lib/green-screen";
 import { pollUntilDone } from "@/lib/poll";
 import type { TryOnView } from "@/lib/tryons";
@@ -20,7 +21,8 @@ export type Look = {
   id: string;
   baseId: string | null;
   path: string;
-  itemIds: string[];
+  itemIds: string[]; // every piece put on, in order
+  chain: string[]; // the saved look after each of those steps
   imageUrl?: string;
 };
 
@@ -68,6 +70,12 @@ export function ClosetScene({
   const [browse, setBrowse] = useState<Browse>(null);
   const router = useRouter();
 
+  // What she's actually wearing: later pieces replace earlier ones of the
+  // same type.
+  const kindById = new Map(items.map((i) => [i.id, i.kind]));
+  const kindOf = (id: string) => kindById.get(id);
+  const worn = look ? wornItems(look.itemIds, kindOf) : [];
+
   // Arrows: step through a section without putting anything on. Starts
   // from the piece she's wearing, if any. Free; only "Put on" spends.
   function step(section: "tops" | "bottoms", delta: 1 | -1) {
@@ -78,7 +86,7 @@ export function ClosetScene({
         ? browse.index
         : Math.max(
             -1,
-            list.findIndex((i) => look?.itemIds.includes(i.id)),
+            list.findIndex((i) => worn.includes(i.id)),
           );
     const index =
       from === -1 && delta === -1
@@ -123,6 +131,7 @@ export function ClosetScene({
   async function run(
     body: { itemId: string; baseTryOnId: string | null; redo: boolean },
     itemIds: string[],
+    chainBefore: string[],
   ) {
     setWorking(true);
     setNotice(null);
@@ -159,6 +168,7 @@ export function ClosetScene({
           baseId: view.baseTryOnId,
           path: "",
           itemIds,
+          chain: [...chainBefore, view.id],
           imageUrl: view.resultUrl,
         });
       } else if (view.status === "pending") {
@@ -185,14 +195,45 @@ export function ClosetScene({
       return;
     }
     if (!photo) return setNotice(ERRORS.no_photo);
-    const wearing = look?.itemIds ?? [];
-    if (wearing.includes(item.id)) {
+    if (worn.includes(item.id)) {
       return setNotice("You're already wearing this.");
     }
-    void run({ itemId: item.id, baseTryOnId: look?.id ?? null, redo: false }, [
-      ...wearing,
-      item.id,
-    ]);
+    // Switching back to a piece she just had on: reuse that saved look.
+    const back = look ? stepToReturnTo(look.itemIds, item.id, kindOf) : -1;
+    if (look && back >= 0) {
+      void returnTo(look, back);
+      return;
+    }
+    void run(
+      { itemId: item.id, baseTryOnId: look?.id ?? null, redo: false },
+      [...(look?.itemIds ?? []), item.id],
+      look?.chain ?? [],
+    );
+  }
+
+  // Shows an earlier saved step of this outfit. Free: no FASHN call.
+  async function returnTo(from: Look, index: number) {
+    setWorking(true);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/tryons/${from.chain[index]}`, {
+        cache: "no-store",
+      });
+      const view = res.ok ? ((await res.json()) as TryOnView) : null;
+      if (view?.status !== "completed" || !view.resultUrl) throw new Error();
+      showLook({
+        id: view.id,
+        baseId: index > 0 ? from.chain[index - 1] : null,
+        path: "",
+        itemIds: from.itemIds.slice(0, index + 1),
+        chain: from.chain.slice(0, index + 1),
+        imageUrl: view.resultUrl,
+      });
+    } catch {
+      setNotice("Something went wrong. Please try again.");
+    } finally {
+      setWorking(false);
+    }
   }
 
   function backToStart() {
@@ -203,9 +244,11 @@ export function ClosetScene({
     }
     if (startingItemId && photo) {
       showLook(null);
-      void run({ itemId: startingItemId, baseTryOnId: null, redo: false }, [
-        startingItemId,
-      ]);
+      void run(
+        { itemId: startingItemId, baseTryOnId: null, redo: false },
+        [startingItemId],
+        [],
+      );
     }
   }
 
@@ -219,6 +262,7 @@ export function ClosetScene({
         redo: true,
       },
       look.itemIds,
+      look.chain.slice(0, -1),
     );
   }
 
@@ -331,7 +375,7 @@ export function ClosetScene({
             <span className="min-w-0 flex-1 truncate text-sm font-medium">
               {browsing.title}
             </span>
-            {look?.itemIds.includes(browsing.id) ? (
+            {worn.includes(browsing.id) ? (
               <span className="shrink-0 px-2 text-xs text-seaglass-deep">
                 Wearing
               </span>
@@ -412,7 +456,7 @@ export function ClosetScene({
             <ClosetSections
               shelves={shelves}
               items={items}
-              wearing={look?.itemIds ?? []}
+              wearing={worn}
               highlighted={browsing?.id ?? null}
               onTap={putOn}
             />

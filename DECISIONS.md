@@ -171,3 +171,8 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** It sets `archived_at` and clears the starting outfit. The photo and try-ons stay.
 - **Why:** Sloane chose hiding over deleting, so it's safer if she taps it by mistake.
 - **Rejected:** Deleting the item, its photo, and its try-ons for good.
+
+## 2026-10-13: Later pieces replace earlier ones of the same type
+- **What:** "Wearing" (gold ring, the arrow card) shows only what's actually on: the last top or outerwear, the last bottom, or a dress (which replaces both). Switching back to a piece she just had returns to its saved look for free, as long as only that same slot changed since. Otherwise the piece is tried on top of the current look (1 credit).
+- **Why:** Sloane found that after putting on a black shirt, the replaced tank still counted as "Wearing" and couldn't be put back on.
+- **Rejected:** Treating every piece ever put on as still worn.

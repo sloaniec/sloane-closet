@@ -45,3 +45,4 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 41. ~~Run `supabase/migrations/0004_item_kinds.sql` in the Supabase SQL editor before merging #39 (Sloane).~~ Done by Sloane on 2026-10-13.
 42. ~~Idea: an "empty shelves" version of each cabinet picture (no bags, books, coral, or towels where clothes go), so her clothes don't sit on top of painted objects. See the image-tool prompt in PR 7.~~ Done in PR 7: Claude cleared the shelves by painting over objects with clean wall from the same picture.
 43. Idea: try on shoes and hats with FASHN Try-On Max (likely costs more; ask Greg).
+44. ~~Bug: after putting on a new top, the arrows still showed the replaced top as "Wearing" and wouldn't put it back on.~~ Done in PR 7: the app now works out what's actually worn (a new top replaces the old top, a new bottom the old bottom, a dress both), and switching back to a piece you just had reuses its saved picture for free.

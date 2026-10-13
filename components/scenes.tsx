@@ -10,6 +10,11 @@ export type Scene = {
   label: string;
   image: string;
   shelves: string; // the shelves that go with this background
+  // Sloane's title sign for this background.
+  // `shown` is its width on screen, in px.
+  sign: { src: string; width: number; height: number; shown: number };
+  // Her painted arrow buttons for this background (round pictures).
+  arrows?: { prev: string; next: string };
 };
 
 export type Shelves = {
@@ -28,12 +33,27 @@ export const SCENES: Scene[] = [
     label: "Ocean closet",
     image: "/scenes/ocean-closet.webp",
     shelves: "ocean-shelves",
+    sign: { src: "/brand/sign.webp", width: 900, height: 415, shown: 160 },
+    arrows: {
+      prev: "/buttons/ocean-prev.webp",
+      next: "/buttons/ocean-next.webp",
+    },
   },
   {
     id: "city-closet",
     label: "City & ocean closet",
     image: "/scenes/city-closet.webp",
     shelves: "city-shelves",
+    sign: {
+      src: "/brand/city-sign.webp",
+      width: 900,
+      height: 301,
+      shown: 190,
+    },
+    arrows: {
+      prev: "/buttons/city-prev.webp",
+      next: "/buttons/city-next.webp",
+    },
   },
 ];
 
@@ -94,6 +114,19 @@ export function FillImage({
       priority={priority}
       sizes="(max-width: 448px) 100vw, 448px"
       className="object-cover"
+    />
+  );
+}
+
+// One of the background's painted buttons, filling its round button.
+export function ButtonArt({ src }: { src: string }) {
+  return (
+    <Image
+      src={src}
+      alt=""
+      width={120}
+      height={120}
+      className="h-full w-full drop-shadow-md"
     />
   );
 }

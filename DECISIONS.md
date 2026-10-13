@@ -191,3 +191,8 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** Sloane made the logo with her image tool: a cream wood plaque with a gold script "S" and hibiscus (app icon, cropped square; iPhone rounds the corners) and a matching "Sloane's Closet" sign (`public/brand/sign.webp`, background made see-through). The sign replaces the text title on the sign-in page and hangs at the top of the closet scene. To make room, her mirror starts a little lower and her standing figure is a little smaller.
 - **Why:** Replaces the placeholder icon (backlog #6) with Sloane's own design.
 - **Rejected:** Claude's four drawn logo sketches (gold hanger, gold mirror, beach day, boutique).
+
+## 2026-10-13: Each background has its own sign and arrow buttons
+- **What:** Each background has its own title sign (`sign` in `SCENES`, pictures in `public/brand/`) and painted arrow buttons (`arrows`, pictures in `public/buttons/`). Ocean closet: the cream sign with hibiscus and the round gold-and-wood arrows (the "next" arrow is her left arrow flipped, so the pair matches). City & ocean closet: the driftwood-and-brass sign and arrows Sloane made for her brother. The + stays the plain yellow button on both.
+- **Why:** Sloane asked for her buttons as part of her beach closet and made a separate set for her brother's city closet. She tried a painted + and chose the plain one.
+- **Rejected:** The same buttons for every background; a painted + button; her flowered right arrow (kept in the scratchpad in case she wants it).

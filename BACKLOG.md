@@ -4,7 +4,7 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 
 1. ~~Feature 1: Foundation (app, Tailwind, Supabase clients, sign-in, empty closet, manifest, `.env.example`, husky + secretlint, `0001_init.sql`)~~ Done in PR 1.
 2. ~~Feature 2: My photo~~ Done in PR 2.
-3. Feature 3: Add an item (in progress)
+3. ~~Feature 3: Add an item~~ Done in PR 3.
 4. Feature 4: Try it on
 5. Feature 5: Credits
 6. Design the real app icon (placeholder until then)
@@ -21,7 +21,9 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 17. Idea: FASHN "Try-On Max" (docs: higher resolution, more item types, prompt-based customization). Different endpoint and likely a different price, so ask Greg. 2026-10-12: not now; start with v1.6 and see how it goes.
 18. Idea: show how much try-ons have cost, by counting completed try-ons in our own database (1 credit = $0.075 each). Could go with the credit balance in #5. FASHN's `GET /v1/credits` only returns the balance (`total`, `subscription`, `on_demand`), with no spending history, so our own count is the way. Sloane approved 2026-10-12: show both credits left and amount spent in #5.
 19. Idea: logins for Sloane's brothers and boyfriend, each with their own closet and try-ons. Already supported: create each account in Supabase like #8 (sign-ups stay off). Try-ons from every account spend credits from Greg's FASHN account, so check with him.
-20. Tapping an item in the closet opens nothing yet. The item screen comes with #4.
+20. ~~Tapping an item in the closet opens nothing yet. The item screen comes with #4.~~ Done in PR 4.
 21. Lululemon blocks the preview: its security service answers "Access Denied" to any automated visit, so the screenshot option is the way in. Tested 2026-10-12: Everlane works (picture, name, $24.00 price); Aritzia also blocks.
 22. ~~Idea: a "Paste picture" button, so Sloane can copy a product photo in Safari (press and hold, then Copy) and paste it, instead of taking a screenshot.~~ Done in PR 3.
 23. Idea: an iPhone Shortcut in Safari's Share menu ("Add to Sloane's Closet") that grabs the product photo from the page on her phone, like Messages does for link previews, so blocked stores still work without a screenshot.
+24. Run `supabase/migrations/0002_tryon_runs.sql` in the Supabase SQL editor before merging #4 (Sloane).
+25. Idea: a way to remove or archive items from the closet (`archived_at` is ready in the database).

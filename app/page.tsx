@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { kindInfo } from "@/lib/kinds";
 import { getPreferences } from "@/lib/preferences";
 import { createClient } from "@/lib/supabase/server";
 import { getTryOn, type TryOnRow } from "@/lib/tryons";
@@ -38,7 +39,7 @@ async function SceneLoader({
       .maybeSingle(),
     supabase
       .from("closet_items")
-      .select("id, title, image_path, is_starting_outfit")
+      .select("id, title, image_path, is_starting_outfit, kind")
       .is("archived_at", null)
       .order("created_at", { ascending: false }),
   ]);
@@ -108,6 +109,8 @@ async function SceneLoader({
     id: i.id,
     title: i.title ?? "",
     imageUrl: url.get(i.image_path) ?? "",
+    kind: i.kind,
+    section: kindInfo(i.kind).section,
   }));
 
   return (

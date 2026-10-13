@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { checkPrediction, getCredits, randomSeed, runTryOn } from "./fashn";
+import { canTryOn, categoryForKind } from "./kinds";
 
 // A run with no answer after this long is treated as failed, so the
 // Try On button works again.
@@ -152,7 +153,12 @@ export type StartResult =
   | { ok: true; row: TryOnRow }
   | {
       ok: false;
-      reason: "no_item" | "no_photo" | "no_credits" | "bad_base";
+      reason:
+        | "no_item"
+        | "no_photo"
+        | "no_credits"
+        | "bad_base"
+        | "not_wearable";
     };
 
 // Try On (redo = false) or Redo (redo = true) for one item, either straight
@@ -167,10 +173,11 @@ export async function startTryOn(
 ): Promise<StartResult> {
   const { data: item } = await supabase
     .from("closet_items")
-    .select("id, image_path, category")
+    .select("id, image_path, kind")
     .eq("id", itemId)
     .maybeSingle();
   if (!item) return { ok: false, reason: "no_item" };
+  if (!canTryOn(item.kind)) return { ok: false, reason: "not_wearable" };
 
   const { data: photo } = await supabase
     .from("person_photos")
@@ -291,7 +298,7 @@ export async function startTryOn(
     const fashnId = await runTryOn({
       modelImageUrl,
       garmentImageUrl,
-      category: item.category,
+      category: categoryForKind(item.kind),
       seed: redo ? randomSeed() : undefined,
     });
     const { data } = await supabase

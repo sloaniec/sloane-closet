@@ -5,7 +5,8 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { CreditLine } from "@/components/credit-line";
 import { useCreditSummary } from "@/lib/use-credit-summary";
 import type { TryOnView } from "@/lib/tryons";
-import { setStartingOutfit } from "./actions";
+import { KINDS, canTryOn } from "@/lib/kinds";
+import { removeItem, setItemKind, setStartingOutfit } from "./actions";
 
 const POLL_MS = 2000;
 const POLL_LIMIT_MS = 60_000;
@@ -21,6 +22,7 @@ type Props = {
   };
   hasPhoto: boolean;
   isStartingOutfit: boolean;
+  kind: string;
   initialTryOn: TryOnView | null;
 };
 
@@ -28,8 +30,12 @@ export function ItemView({
   item,
   hasPhoto,
   isStartingOutfit,
+  kind,
   initialTryOn,
 }: Props) {
+  const [savingKind, startSavingKind] = useTransition();
+  const [removing, startRemoving] = useTransition();
+  const wearable = canTryOn(kind);
   const [savingStart, startSavingStart] = useTransition();
   const [tryOn, setTryOn] = useState<TryOnView | null>(initialTryOn);
   const [showOriginal, setShowOriginal] = useState(false);
@@ -166,7 +172,7 @@ export function ItemView({
       )}
 
       <div className="flex gap-3">
-        {resultUrl ? (
+        {!wearable ? null : resultUrl ? (
           <button
             type="button"
             disabled={working}
@@ -199,22 +205,64 @@ export function ItemView({
         </a>
       </div>
 
-      {summary && <CreditLine summary={summary} />}
-
-      {isStartingOutfit ? (
-        <p className="text-center text-sm font-medium text-seaglass-deep">
-          ★ Your starting outfit
+      {!wearable && (
+        <p className="text-center text-sm text-seaglass-deep">
+          Shoes and hats can&apos;t be tried on yet.
         </p>
-      ) : (
-        <button
-          type="button"
-          disabled={savingStart}
-          onClick={() => startSavingStart(() => setStartingOutfit(item.id))}
-          className="text-sm font-medium text-seaglass-deep underline-offset-4 hover:underline disabled:opacity-60"
-        >
-          Make this my starting outfit
-        </button>
       )}
+      {wearable && summary && <CreditLine summary={summary} />}
+
+      <fieldset className="mt-2 flex flex-col gap-2">
+        <legend className="mb-1 text-sm font-medium">Type of clothing</legend>
+        <div className="grid grid-cols-3 gap-2">
+          {KINDS.map((k) => (
+            <button
+              key={k.value}
+              type="button"
+              disabled={savingKind}
+              onClick={() =>
+                startSavingKind(() => setItemKind(item.id, k.value))
+              }
+              className={`rounded-xl px-2 py-2 text-sm font-medium ring-1 transition disabled:opacity-60 ${
+                kind === k.value
+                  ? "bg-seaglass ring-seaglass-deep"
+                  : "bg-shell ring-seaglass"
+              }`}
+            >
+              {k.label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      {wearable &&
+        (isStartingOutfit ? (
+          <p className="text-center text-sm font-medium text-seaglass-deep">
+            ★ Your starting outfit
+          </p>
+        ) : (
+          <button
+            type="button"
+            disabled={savingStart}
+            onClick={() => startSavingStart(() => setStartingOutfit(item.id))}
+            className="text-sm font-medium text-seaglass-deep underline-offset-4 hover:underline disabled:opacity-60"
+          >
+            Make this my starting outfit
+          </button>
+        ))}
+
+      <button
+        type="button"
+        disabled={removing}
+        onClick={() => {
+          if (confirm("Remove this from your closet?")) {
+            startRemoving(() => removeItem(item.id));
+          }
+        }}
+        className="mt-4 text-sm font-medium text-coral-orange underline-offset-4 hover:underline disabled:opacity-60"
+      >
+        Remove from closet
+      </button>
     </div>
   );
 }

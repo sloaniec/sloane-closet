@@ -2,20 +2,19 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CreditLine } from "@/components/credit-line";
 import {
-  FillImage,
-  sceneFor,
-  shelvesFor,
-  type Shelves,
-} from "@/components/scenes";
+  ClosetSections,
+  scrollItemIntoView,
+  type RailItem,
+} from "@/components/closet-sections";
+import { FillImage, sceneFor, shelvesFor } from "@/components/scenes";
+import { canTryOn } from "@/lib/kinds";
 import { keyOutGreen } from "@/lib/green-screen";
 import { pollUntilDone } from "@/lib/poll";
 import type { TryOnView } from "@/lib/tryons";
 import { useCreditSummary } from "@/lib/use-credit-summary";
-
-const HOLD_MS = 550;
 
 export type Look = {
   id: string;
@@ -25,7 +24,7 @@ export type Look = {
   imageUrl?: string;
 };
 
-export type RailItem = { id: string; title: string; imageUrl: string };
+export type { RailItem };
 
 type Props = {
   sceneId: string | null;
@@ -42,7 +41,15 @@ const ERRORS: Record<string, string> = {
   no_credits: "Out of credits.",
   bad_base:
     "That outfit is out of date. Starting again from your starting outfit.",
+  not_wearable: "Shoes and hats can't be tried on yet.",
 };
+
+// The arrows beside her browse these sections.
+const ARROW_ROWS = [
+  { section: "tops", label: "tops", top: "36%" },
+  { section: "bottoms", label: "bottoms", top: "64%" },
+] as const;
+type Browse = { section: "tops" | "bottoms"; index: number } | null;
 
 export function ClosetScene({
   sceneId,
@@ -58,6 +65,31 @@ export function ClosetScene({
   const [look, setLook] = useState<Look | null>(initialLook);
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [browse, setBrowse] = useState<Browse>(null);
+  const router = useRouter();
+
+  // Arrows: step through a section without putting anything on. Starts
+  // from the piece she's wearing, if any. Free; only "Put on" spends.
+  function step(section: "tops" | "bottoms", delta: 1 | -1) {
+    const list = items.filter((i) => i.section === section);
+    if (list.length === 0) return;
+    const from =
+      browse?.section === section
+        ? browse.index
+        : Math.max(
+            -1,
+            list.findIndex((i) => look?.itemIds.includes(i.id)),
+          );
+    const index =
+      from === -1 && delta === -1
+        ? list.length - 1
+        : (from + delta + list.length) % list.length;
+    setBrowse({ section, index });
+    scrollItemIntoView(list[index].id);
+  }
+  const browsing = browse
+    ? items.filter((i) => i.section === browse.section)[browse.index]
+    : null;
   const summary = useCreditSummary(look?.id);
 
   // On a green-screen photo she stands in the scene; otherwise she shows
@@ -147,6 +179,11 @@ export function ClosetScene({
 
   function putOn(item: RailItem) {
     if (working) return;
+    setBrowse(null);
+    if (!canTryOn(item.kind)) {
+      router.push(`/items/${item.id}`);
+      return;
+    }
     if (!photo) return setNotice(ERRORS.no_photo);
     const wearing = look?.itemIds ?? [];
     if (wearing.includes(item.id)) {
@@ -254,6 +291,62 @@ export function ClosetScene({
           </div>
         )}
 
+        {/* Arrows beside her: browse tops (upper) and bottoms (lower) */}
+        {photo &&
+          ARROW_ROWS.map((row) =>
+            items.some((i) => i.section === row.section) ? (
+              <div
+                key={row.section}
+                className="pointer-events-none absolute inset-x-2 z-20 flex justify-between"
+                style={{ top: row.top }}
+              >
+                {([-1, 1] as const).map((delta) => (
+                  <button
+                    key={delta}
+                    type="button"
+                    disabled={working}
+                    onClick={() => step(row.section, delta)}
+                    aria-label={`${delta === -1 ? "Previous" : "Next"} ${row.label}`}
+                    className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-shell/90 text-2xl leading-none text-tide shadow ring-1 ring-seaglass transition active:scale-90 disabled:opacity-50"
+                  >
+                    {delta === -1 ? "‹" : "›"}
+                  </button>
+                ))}
+              </div>
+            ) : null,
+          )}
+
+        {/* What the arrows landed on, with Put on */}
+        {browsing && !working && (
+          <div
+            className="absolute left-1/2 z-20 flex w-[min(15rem,70%)] -translate-x-1/2 items-center gap-2 rounded-2xl bg-shell/95 p-2 shadow-lg ring-1 ring-seaglass"
+            style={{ bottom: "3%" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL */}
+            <img
+              src={browsing.imageUrl}
+              alt=""
+              className="h-14 w-11 shrink-0 rounded-lg object-cover"
+            />
+            <span className="min-w-0 flex-1 truncate text-sm font-medium">
+              {browsing.title}
+            </span>
+            {look?.itemIds.includes(browsing.id) ? (
+              <span className="shrink-0 px-2 text-xs text-seaglass-deep">
+                Wearing
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => putOn(browsing)}
+                className="shrink-0 rounded-full bg-sunshine px-3 py-2 text-sm font-semibold text-tide shadow-sm"
+              >
+                Put on
+              </button>
+            )}
+          </div>
+        )}
+
         {working && (
           <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-sand/50 backdrop-blur-[2px]">
             <span className="h-12 w-12 animate-spin rounded-full border-4 border-seaglass border-t-gold" />
@@ -313,19 +406,16 @@ export function ClosetScene({
         ) : (
           <>
             <p className="text-center text-xs">
-              Tap to put on · Hold for details
+              Tap to put on · Hold for details · Arrows browse tops &amp;
+              bottoms
             </p>
-            <ClosetRail shelves={shelves}>
-              {items.map((item) => (
-                <RailCard
-                  key={item.id}
-                  item={item}
-                  hook={shelves.hook}
-                  wearing={look?.itemIds.includes(item.id) ?? false}
-                  onTap={() => putOn(item)}
-                />
-              ))}
-            </ClosetRail>
+            <ClosetSections
+              shelves={shelves}
+              items={items}
+              wearing={look?.itemIds ?? []}
+              highlighted={browsing?.id ?? null}
+              onTap={putOn}
+            />
           </>
         )}
         {!startingItemId && items.length > 0 && (
@@ -335,116 +425,6 @@ export function ClosetScene({
           </p>
         )}
       </div>
-    </div>
-  );
-}
-
-// Tap puts it on; press and hold opens its details (with Shop).
-function RailCard({
-  item,
-  hook,
-  wearing,
-  onTap,
-}: {
-  item: RailItem;
-  hook: string;
-  wearing: boolean;
-  onTap: () => void;
-}) {
-  const router = useRouter();
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const held = useRef(false);
-
-  function cancel() {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = null;
-  }
-
-  return (
-    <li className="flex w-20 shrink-0 snap-start flex-col items-center">
-      {/* Hanger: hook over the rod, shoulders down to the clothes */}
-      <svg
-        viewBox="0 0 96 30"
-        className="relative z-10 -mb-1 h-[26px] w-20"
-        aria-hidden="true"
-      >
-        <path
-          d="M48 22 V12 C48 6 56 6 56 11"
-          fill="none"
-          stroke={hook}
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M48 22 L12 29 M48 22 L84 29"
-          fill="none"
-          stroke="#c98f62"
-          strokeWidth="3.4"
-          strokeLinecap="round"
-        />
-      </svg>
-      <button
-        type="button"
-        onPointerDown={() => {
-          held.current = false;
-          cancel();
-          timer.current = setTimeout(() => {
-            held.current = true;
-            router.push(`/items/${item.id}`);
-          }, HOLD_MS);
-        }}
-        onPointerUp={() => {
-          const wasHeld = held.current;
-          cancel();
-          if (!wasHeld) onTap();
-        }}
-        onPointerLeave={cancel}
-        onPointerCancel={cancel}
-        onContextMenu={(e) => e.preventDefault()}
-        className={`block w-full origin-top select-none overflow-hidden rounded-xl bg-shell text-left shadow-md transition active:rotate-1 active:scale-95 [-webkit-touch-callout:none] ${
-          wearing ? "ring-4 ring-gold" : "ring-1 ring-seaglass"
-        }`}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL */}
-        <img
-          src={item.imageUrl}
-          alt=""
-          draggable={false}
-          className="pointer-events-none aspect-[3/4] w-full object-cover"
-        />
-        <span className="block truncate px-2 py-1 text-xs font-medium">
-          {item.title}
-        </span>
-      </button>
-    </li>
-  );
-}
-
-// The inside of a closet: Sloane's shelves picture, with her clothes
-// hanging on hangers from its gold rod. Scrolls sideways along the rod.
-function ClosetRail({
-  shelves,
-  children,
-}: {
-  shelves: Shelves;
-  children: React.ReactNode;
-}) {
-  const { top, left, right } = shelves.rod;
-  return (
-    <div className="relative -mx-2 aspect-[665/450] overflow-hidden rounded-2xl shadow-md">
-      <FillImage src={shelves.image} />
-      <ul
-        className="absolute bottom-0 flex snap-x gap-3 overflow-x-auto"
-        style={{
-          top: `calc(${top}% - 7px)`,
-          left: `${left}%`,
-          right: `${right}%`,
-          paddingLeft: "4%",
-          paddingRight: "4%",
-        }}
-      >
-        {children}
-      </ul>
     </div>
   );
 }

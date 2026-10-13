@@ -151,3 +151,23 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 ## 2026-10-13: Read background choices fresh, not from the sign-in token
 - **What:** `lib/preferences.ts` reads choices with `supabase.auth.getUser()`. Saving a choice also renews the sign-in.
 - **Why:** The sign-in token carries a copy of the account's settings that only updates when it renews, so a new choice didn't show up.
+
+## 2026-10-13: Clothes are sorted into closet sections by kind
+- **What:** Each item has a kind: Top, Bottom, Dress, Outerwear, Shoes, or Hat. It's picked when adding, and can be changed on the item screen. The closet shows sections made from parts of Sloane's cabinet picture: Hats on the top shelf, Tops and Dresses & outerwear on the hanging rod, Bottoms on the folded shelf, Shoes on the lower shelf. Existing items were sorted from their old FASHN category, and "Let the app guess" items became Tops.
+- **Why:** Sloane wants each kind of clothing in its own part of the closet, like a real one.
+- **Rejected:** Keeping FASHN's "Let the app guess" category (the kind now decides the category).
+
+## 2026-10-13: Arrows browse; only "Put on" spends
+- **What:** Arrows beside her step through tops (upper) and bottoms (lower) and show a card with the piece and **Put on**. Browsing never calls FASHN.
+- **Why:** Sloane wanted arrows to rotate through her clothes. Putting on every piece as she flips would spend a credit per new combination. (She asked how this works; it's built this way pending her confirmation.)
+- **Rejected:** Putting on each piece as she browses.
+
+## 2026-10-13: Shoes and hats are look-and-shop only
+- **What:** Shoes and hats sit on their shelves. Tapping one opens it (with Shop). Try On is hidden, and the server refuses (`not_wearable`).
+- **Why:** FASHN v1.6 only dresses tops, bottoms, and one-pieces. Sloane chose to store and shop them for now.
+- **Rejected:** Try-On Max for shoes and hats (backlog #43, ask Greg).
+
+## 2026-10-13: "Remove from closet" hides an item
+- **What:** It sets `archived_at` and clears the starting outfit. The photo and try-ons stay.
+- **Why:** Sloane chose hiding over deleting, so it's safer if she taps it by mistake.
+- **Rejected:** Deleting the item, its photo, and its try-ons for good.

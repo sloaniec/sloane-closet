@@ -26,7 +26,7 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 22. ~~Idea: a "Paste picture" button, so Sloane can copy a product photo in Safari (press and hold, then Copy) and paste it, instead of taking a screenshot.~~ Done in PR 3.
 23. Idea: an iPhone Shortcut in Safari's Share menu ("Add to Sloane's Closet") that grabs the product photo from the page on her phone, like Messages does for link previews, so blocked stores still work without a screenshot.
 24. ~~Run `supabase/migrations/0002_tryon_runs.sql` in the Supabase SQL editor before merging #4 (Sloane).~~ Done by Sloane on 2026-10-13 ("Success. No rows returned").
-25. Idea: a way to remove or archive items from the closet (`archived_at` is ready in the database).
+25. ~~Idea: a way to remove or archive items from the closet (`archived_at` is ready in the database).~~ Done in PR 7.
 26. ~~New look: the home screen is a scene of Sloane in a clean, beachy closet with an ocean view.~~ Done in PR 6.
 27. ~~Starting outfit: she starts the scene wearing the Victoria's Secret SoSoft Modal Short Pajama Set (Coconut White & Blue Stripes).~~ Done in PR 6.
 28. ~~Layering: pick clothes from the closet and add them one on top of another on the same look.~~ Done in PR 6.
@@ -40,3 +40,8 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 36. Idea: let each person upload their own background picture in Profile.
 37. ~~Bug: choosing "City & ocean closet" in Profile didn't switch. The choice was saved, but the app read it from the sign-in token, which keeps the old value until it renews (about an hour).~~ Done in PR 6: the app reads choices fresh and renews the sign-in after a change.
 38. ~~Use Sloane's updated room pictures (island further back) and her closet-shelf pictures for the hanging area, with a separate shelves choice in Profile.~~ Done in PR 6.
+39. Sort clothes by kind (top, bottom, dress, outerwear, shoes, hat) into closet sections made from parts of the cabinet picture.
+40. Arrows beside Sloane to browse tops (upper) and bottoms (lower); Put on spends, browsing is free.
+41. Run `supabase/migrations/0004_item_kinds.sql` in the Supabase SQL editor before merging #39 (Sloane).
+42. Idea: an "empty shelves" version of each cabinet picture (no bags, books, coral, or towels where clothes go), so her clothes don't sit on top of painted objects. See the image-tool prompt in PR 7.
+43. Idea: try on shoes and hats with FASHN Try-On Max (likely costs more; ask Greg).

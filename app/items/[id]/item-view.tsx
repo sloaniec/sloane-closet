@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { CreditLine } from "@/components/credit-line";
 import { useCreditSummary } from "@/lib/use-credit-summary";
 import type { TryOnView } from "@/lib/tryons";
+import { setStartingOutfit } from "./actions";
 
 const POLL_MS = 2000;
 const POLL_LIMIT_MS = 60_000;
@@ -19,10 +20,17 @@ type Props = {
     imageUrl: string;
   };
   hasPhoto: boolean;
+  isStartingOutfit: boolean;
   initialTryOn: TryOnView | null;
 };
 
-export function ItemView({ item, hasPhoto, initialTryOn }: Props) {
+export function ItemView({
+  item,
+  hasPhoto,
+  isStartingOutfit,
+  initialTryOn,
+}: Props) {
+  const [savingStart, startSavingStart] = useTransition();
   const [tryOn, setTryOn] = useState<TryOnView | null>(initialTryOn);
   const [showOriginal, setShowOriginal] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -192,6 +200,21 @@ export function ItemView({ item, hasPhoto, initialTryOn }: Props) {
       </div>
 
       {summary && <CreditLine summary={summary} />}
+
+      {isStartingOutfit ? (
+        <p className="text-center text-sm font-medium text-seaglass-deep">
+          ★ Your starting outfit
+        </p>
+      ) : (
+        <button
+          type="button"
+          disabled={savingStart}
+          onClick={() => startSavingStart(() => setStartingOutfit(item.id))}
+          className="text-sm font-medium text-seaglass-deep underline-offset-4 hover:underline disabled:opacity-60"
+        >
+          Make this my starting outfit
+        </button>
+      )}
     </div>
   );
 }

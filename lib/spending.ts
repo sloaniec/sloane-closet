@@ -8,9 +8,12 @@ export type CreditSummary = {
   spent: string;
 };
 
+// `otherCredits` covers credits spent on things that aren't try-ons, such
+// as "Cut me out".
 export function summarize(
   credits: number | null,
   tryOns: number,
+  otherCredits = 0,
 ): CreditSummary {
   return {
     credits,
@@ -18,6 +21,9 @@ export function summarize(
     spent: new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
-    }).format(Math.round((tryOns * TENTHS_OF_A_CENT_PER_CREDIT) / 10) / 100),
+    }).format(
+      Math.round(((tryOns + otherCredits) * TENTHS_OF_A_CENT_PER_CREDIT) / 10) /
+        100,
+    ),
   };
 }

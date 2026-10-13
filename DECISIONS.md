@@ -104,3 +104,27 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 ## 2026-10-13: Spending counts this account's completed runs
 - **What:** "try-ons" is the sum of `tryons.completed_runs` for the signed-in account, Redos included. "spent" is that number × $0.075, worked out in tenths of a cent so it rounds right (23 → $1.73). "credits left" is Greg's shared FASHN balance.
 - **Why:** FASHN has no spending history. Each account sees only its own rows, so a brother's or boyfriend's try-ons show on their own screen, not Sloane's.
+
+## 2026-10-13: The closet scene is the home screen
+- **What:**
+  - **The scene:** a drawn closet (no photos), with Sloane standing in it. A rail of her clothes runs along the bottom: tap to put on and layer, press and hold for details and Shop. **+** and a Profile icon sit in the corners.
+  - **Buttons:** "Back to PJs" returns to her starting outfit, and Redo asks "Uses 1 credit." first.
+  - **Backgrounds:** each account picks one in Profile.
+- **Why:** Sloane wants to start in her closet with an ocean view, wearing her Victoria's Secret PJs, and get dressed from there. She chose drawn art, tap-to-add, a "Back to PJs" button, and icons on the scene.
+- **Rejected:** A real or stock photo background; building a whole outfit and then trying it on; an undo-one-layer button; keeping the old closet grid as home.
+
+## 2026-10-13: Layering means trying the next piece on the last picture
+- **What:** Each piece is tried on the picture of her already wearing the earlier pieces, at 1 credit per piece. Every combination is saved and free to see again.
+- **Why:** FASHN v1.6 dresses one piece at a time.
+- **Limit:** FASHN swaps by type, so a new top replaces the top. Jackets over tops aren't guaranteed.
+
+## 2026-10-13: Green screen, so the clothes stick to her and the background can change
+- **What:** "Cut me out" (FASHN Background Remove, 1 credit, once per photo) → the cut-out goes on solid green (#00b140) → saved as a new active photo. Try-ons keep the green, and the app removes it for free in the browser, unmixing green from edge pixels.
+- **Why:** Sloane wants the background changeable, with her cut out once instead of on every look.
+- **Rejected:** Paying 1 credit to cut out every look; Google MediaPipe in the browser (a new library, with softer edges).
+- **Risks:** green clothes; slight edge tint. Both can be tuned in code without spending credits.
+
+## 2026-10-13: Brother's background
+- **What:** "City & ocean closet": modern greys, dark shelves, a black-framed window onto a city skyline and the ocean.
+- **Why:** Sloane asked for a more masculine, modern closet for her older brother.
+- **Where it's saved:** each person's choice is on their own account (Supabase user metadata), so his account opens in his scene.

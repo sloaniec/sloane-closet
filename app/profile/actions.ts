@@ -12,21 +12,35 @@ async function requireUser() {
 }
 
 // Saves a photo row after the browser has uploaded the file to Storage.
-// The first photo becomes the active one automatically.
-export async function addPhoto(storagePath: string) {
+// The first photo becomes the active one automatically. A green-screen
+// photo (made from "Cut me out") becomes active right away.
+export async function addPhoto(
+  storagePath: string,
+  options: { greenScreen?: boolean } = {},
+) {
   const { supabase, userId } = await requireUser();
   if (!storagePath.startsWith(`${userId}/person/`)) {
     throw new Error("Invalid photo path");
   }
+  const greenScreen = options.greenScreen === true;
 
+  if (greenScreen) {
+    const cleared = await supabase
+      .from("person_photos")
+      .update({ is_active: false })
+      .eq("is_active", true);
+    if (cleared.error) throw new Error(cleared.error.message);
+  }
   const { count } = await supabase
     .from("person_photos")
     .select("id", { count: "exact", head: true })
     .eq("is_active", true);
 
-  const { error } = await supabase
-    .from("person_photos")
-    .insert({ storage_path: storagePath, is_active: !count });
+  const { error } = await supabase.from("person_photos").insert({
+    storage_path: storagePath,
+    is_active: !count,
+    green_screen: greenScreen,
+  });
   if (error) throw new Error(error.message);
   refresh();
 }

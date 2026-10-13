@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { checkTryOn, getCredits, randomSeed, runTryOn } from "./fashn";
+import { checkPrediction, getCredits, randomSeed, runTryOn } from "./fashn";
 
 // A run with no answer after this long is treated as failed, so the
 // Try On button works again.
@@ -90,7 +90,7 @@ export async function refreshTryOn(
 
   let status;
   try {
-    status = await checkTryOn(row.fashn_id);
+    status = await checkPrediction(row.fashn_id);
   } catch {
     return row; // Couldn't reach FASHN this time; the browser asks again.
   }
@@ -277,10 +277,7 @@ export async function startTryOn(
   // Signed links FASHN can read for 10 minutes.
   const { data: links } = await supabase.storage
     .from("closet")
-    .createSignedUrls(
-      [modelPath, item.image_path],
-      FASHN_INPUT_URL_SECONDS,
-    );
+    .createSignedUrls([modelPath, item.image_path], FASHN_INPUT_URL_SECONDS);
   const modelImageUrl = links?.[0]?.signedUrl;
   const garmentImageUrl = links?.[1]?.signedUrl;
   if (!modelImageUrl || !garmentImageUrl) {

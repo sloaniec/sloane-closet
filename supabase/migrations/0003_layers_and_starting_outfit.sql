@@ -36,3 +36,12 @@ alter table public.closet_items
 create unique index closet_items_one_starting_outfit
   on public.closet_items (user_id)
   where is_starting_outfit;
+
+-- Green-screen photos. FASHN cuts her out of a photo once (cutout_path,
+-- a transparent PNG). The app puts that cut-out on solid green and saves it
+-- as a new photo (green_screen = true). Try-ons on that photo keep the green
+-- background, which the app removes for free, so any scene can go behind her.
+alter table public.person_photos
+  add column green_screen boolean not null default false,
+  add column cutout_fashn_id text,
+  add column cutout_path text;

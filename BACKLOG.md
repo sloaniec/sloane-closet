@@ -32,3 +32,6 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 28. Layering: pick clothes from the closet and add them one on top of another on the same look.
 29. Changeable backgrounds: the clothes stay on Sloane, and the scene behind her can change. Needs her cut out of each look.
 30. A scene for her older brother: a more masculine, modern closet in greys, with a city and ocean view from the window.
+31. Run `supabase/migrations/0003_layers_and_starting_outfit.sql` in the Supabase SQL editor before merging #26-#29 (Sloane).
+32. Test the green screen for real: "Cut me out" on a photo (1 credit), then put on one piece (1 credit). Check the edges, then tune `lib/green-screen.ts` if needed.
+33. Green clothes would be partly erased by the green screen. If that happens, switch to a color clothes don't use.

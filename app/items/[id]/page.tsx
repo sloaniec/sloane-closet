@@ -15,7 +15,9 @@ export default function ItemPage({ params }: PageProps<"/items/[id]">) {
           ← Closet
         </Link>
       </header>
-      <Suspense fallback={<p className="mt-10 text-center text-sm">Loading…</p>}>
+      <Suspense
+        fallback={<p className="mt-10 text-center text-sm">Loading…</p>}
+      >
         <Item params={params} />
       </Suspense>
     </main>
@@ -28,7 +30,9 @@ async function Item({ params }: { params: Promise<{ id: string }> }) {
 
   const { data: item } = await supabase
     .from("closet_items")
-    .select("id, title, store, price_text, product_url, image_path")
+    .select(
+      "id, title, store, price_text, product_url, image_path, is_starting_outfit",
+    )
     .eq("id", id)
     .maybeSingle();
   if (!item) notFound();
@@ -49,7 +53,8 @@ async function Item({ params }: { params: Promise<{ id: string }> }) {
       .is("base_tryon_id", null)
       .maybeSingle();
     const full = row ? await getTryOn(supabase, row.id) : null;
-    if (full) tryOn = await toView(supabase, await refreshTryOn(supabase, full));
+    if (full)
+      tryOn = await toView(supabase, await refreshTryOn(supabase, full));
   }
 
   const { data: signed } = await supabase.storage
@@ -66,6 +71,7 @@ async function Item({ params }: { params: Promise<{ id: string }> }) {
         imageUrl: signed?.signedUrl ?? "",
       }}
       hasPhoto={Boolean(photo)}
+      isStartingOutfit={item.is_starting_outfit}
       initialTryOn={tryOn}
     />
   );

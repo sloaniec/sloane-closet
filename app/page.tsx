@@ -1,121 +1,131 @@
-import Link from "next/link";
 import { Suspense } from "react";
+import { getPreferences } from "@/lib/preferences";
 import { createClient } from "@/lib/supabase/server";
+import { getTryOn, type TryOnRow } from "@/lib/tryons";
+import { ClosetScene, type Look, type RailItem } from "./closet-scene";
 
 const SIGNED_URL_SECONDS = 60 * 60;
+const MAX_LAYERS = 12;
 
-export default function ClosetPage() {
+export default function HomePage({ searchParams }: PageProps<"/">) {
   return (
-    <main className="flex flex-1 flex-col px-6 pb-28 pt-[max(1.5rem,env(safe-area-inset-top))]">
-      <header className="mx-auto flex w-full max-w-2xl items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">
-          Sloane&apos;s Closet
-        </h1>
-        <Link
-          href="/profile"
-          className="text-sm font-medium text-seaglass-deep underline-offset-4 hover:underline"
-        >
-          Profile
-        </Link>
-      </header>
-      <div className="mx-auto mt-2 h-1 w-full max-w-2xl rounded-full bg-gradient-to-r from-seaglass via-sunshine to-coral-orange" />
-
+    <main className="flex flex-1 flex-col pb-6">
       <Suspense
         fallback={
-          <p className="mt-10 text-center text-sm">Loading your closet…</p>
+          <p className="mt-24 text-center text-sm">Opening your closet…</p>
         }
       >
-        <ClosetItems />
+        <SceneLoader searchParams={searchParams} />
       </Suspense>
-
-      <Link
-        href="/add"
-        aria-label="Add an item"
-        className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-6 flex h-16 w-16 items-center justify-center rounded-full bg-sunshine text-4xl font-light text-tide shadow-lg ring-2 ring-gold transition active:scale-95"
-      >
-        +
-      </Link>
     </main>
   );
 }
 
-async function ClosetItems() {
+async function SceneLoader({
+  searchParams,
+}: {
+  searchParams: PageProps<"/">["searchParams"];
+}) {
+  const { look: lookParam } = await searchParams;
   const supabase = await createClient();
-  const { data: items, error } = await supabase
-    .from("closet_items")
-    .select("id, title, store, price_text, image_path")
-    .is("archived_at", null)
-    .order("created_at", { ascending: false });
+  const prefs = await getPreferences(supabase);
 
-  if (error) {
-    return (
-      <p className="mt-10 text-center text-sm text-coral-orange">
-        Couldn&apos;t load your closet. Try again in a moment.
-      </p>
-    );
-  }
-  if (items.length === 0) {
-    return (
-      <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center text-center">
-        <div className="rounded-3xl bg-shell/80 px-8 py-10 shadow-sm ring-1 ring-seaglass">
-          <p className="text-lg">
-            Add clothing item links to build the wardrobe.
-          </p>
-        </div>
-      </section>
-    );
+  const [{ data: photo }, { data: items }] = await Promise.all([
+    supabase
+      .from("person_photos")
+      .select("id, storage_path, green_screen")
+      .eq("is_active", true)
+      .maybeSingle(),
+    supabase
+      .from("closet_items")
+      .select("id, title, image_path, is_starting_outfit")
+      .is("archived_at", null)
+      .order("created_at", { ascending: false }),
+  ]);
+  const allItems = items ?? [];
+  const startingItem = allItems.find((i) => i.is_starting_outfit) ?? null;
+
+  // A finished try-on of this photo, with the items it's wearing (walking
+  // back through the layers).
+  async function lookFrom(row: TryOnRow | null): Promise<Look | null> {
+    if (!row || !photo) return null;
+    if (row.status !== "completed" || !row.result_path) return null;
+    if (row.person_photo_id !== photo.id) return null;
+    const itemIds = [row.item_id];
+    let base = row.base_tryon_id;
+    for (let i = 0; base && i < MAX_LAYERS; i++) {
+      const parent = await getTryOn(supabase, base);
+      if (!parent) break;
+      itemIds.unshift(parent.item_id);
+      base = parent.base_tryon_id;
+    }
+    return {
+      id: row.id,
+      baseId: row.base_tryon_id,
+      path: row.result_path,
+      itemIds,
+    };
   }
 
-  // Show the try-on photo (for the active photo of her) when there is one.
-  const { data: photo } = await supabase
-    .from("person_photos")
-    .select("id")
-    .eq("is_active", true)
-    .maybeSingle();
-  const tryOnPathByItem = new Map<string, string>();
-  if (photo) {
-    const { data: tryOns } = await supabase
+  let startingLook: Look | null = null;
+  if (photo && startingItem) {
+    const { data: row } = await supabase
       .from("tryons")
-      .select("item_id, result_path")
+      .select("id")
+      .eq("item_id", startingItem.id)
       .eq("person_photo_id", photo.id)
-      .not("result_path", "is", null);
-    for (const t of tryOns ?? []) tryOnPathByItem.set(t.item_id, t.result_path);
+      .is("base_tryon_id", null)
+      .maybeSingle();
+    startingLook = row
+      ? await lookFrom(await getTryOn(supabase, row.id))
+      : null;
   }
-  const pathFor = (item: { id: string; image_path: string }) =>
-    tryOnPathByItem.get(item.id) ?? item.image_path;
+  const requested =
+    typeof lookParam === "string"
+      ? await lookFrom(await getTryOn(supabase, lookParam))
+      : null;
+  const current = requested ?? startingLook;
 
-  const { data: signed } = await supabase.storage
-    .from("closet")
-    .createSignedUrls(items.map(pathFor), SIGNED_URL_SECONDS);
-  const urlByPath = new Map(
+  // One batch of short-lived signed links for every picture on screen.
+  const paths = [
+    ...allItems.map((i) => i.image_path),
+    ...(photo ? [photo.storage_path] : []),
+    ...(current ? [current.path] : []),
+    ...(startingLook ? [startingLook.path] : []),
+  ];
+  const { data: signed } = paths.length
+    ? await supabase.storage
+        .from("closet")
+        .createSignedUrls(paths, SIGNED_URL_SECONDS)
+    : { data: [] };
+  const url = new Map(
     (signed ?? []).map((s) => [s.path, s.signedUrl] as const),
   );
+  const withUrl = (look: Look | null) =>
+    look ? { ...look, imageUrl: url.get(look.path) ?? "" } : null;
+
+  const rail: RailItem[] = allItems.map((i) => ({
+    id: i.id,
+    title: i.title ?? "",
+    imageUrl: url.get(i.image_path) ?? "",
+  }));
 
   return (
-    <ul className="mx-auto mt-6 grid w-full max-w-2xl grid-cols-2 gap-4">
-      {items.map((item) => (
-        <li key={item.id}>
-          <Link
-            href={`/items/${item.id}`}
-            className="block overflow-hidden rounded-2xl bg-shell shadow-sm ring-1 ring-seaglass transition active:scale-[0.98]"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL */}
-            <img
-              src={urlByPath.get(pathFor(item)) ?? ""}
-              alt=""
-              className="aspect-[3/4] w-full bg-sand object-cover"
-            />
-            <div className="p-3">
-              <p className="line-clamp-2 text-sm font-semibold">{item.title}</p>
-              {(item.store || item.price_text) && (
-                <p className="mt-1 text-xs text-seaglass-deep">
-                  {[item.store, item.price_text].filter(Boolean).join(" · ")}
-                </p>
-              )}
-            </div>
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <ClosetScene
+      sceneId={prefs.scene}
+      shelvesId={prefs.shelves}
+      photo={
+        photo
+          ? {
+              url: url.get(photo.storage_path) ?? "",
+              greenScreen: photo.green_screen,
+            }
+          : null
+      }
+      items={rail}
+      startingItemId={startingItem?.id ?? null}
+      startingLook={withUrl(startingLook)}
+      initialLook={withUrl(current)}
+    />
   );
 }

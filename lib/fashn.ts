@@ -65,8 +65,9 @@ export async function runTryOn(inputs: TryOnInputs): Promise<string> {
   return body.id;
 }
 
-// Checks a prediction once. Never waits for it to finish.
-export async function checkTryOn(fashnId: string): Promise<FashnStatus> {
+// Checks a prediction (try-on or cut-out) once. Never waits for it to
+// finish.
+export async function checkPrediction(fashnId: string): Promise<FashnStatus> {
   const res = await fetch(`${API}/status/${encodeURIComponent(fashnId)}`, {
     headers: headers(),
     signal: AbortSignal.timeout(8_000),
@@ -102,6 +103,31 @@ function decodeDataUri(value: string): Buffer | null {
   if (!m) return null;
   const buf = Buffer.from(m[1], "base64");
   return buf.length > 0 ? buf : null;
+}
+
+// Cuts the person out of a photo, returning FASHN's prediction id. The
+// result is a transparent PNG. Costs 1 credit; only the "Cut me out"
+// button may lead here.
+export async function runBackgroundRemove(imageUrl: string): Promise<string> {
+  const res = await fetch(`${API}/run`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      model_name: "background-remove",
+      inputs: { image: imageUrl, return_base64: true },
+    }),
+    signal: AbortSignal.timeout(15_000),
+  });
+  const body = (await res.json().catch(() => null)) as {
+    id?: string;
+    error?: unknown;
+  } | null;
+  if (!res.ok || !body?.id || body.error) {
+    throw new Error(
+      describeError(body?.error) ?? `FASHN answered ${res.status}`,
+    );
+  }
+  return body.id;
 }
 
 // FASHN errors look like { name: "PoseError", message: "..." }.

@@ -6,7 +6,7 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 2. ~~Feature 2: My photo~~ Done in PR 2.
 3. ~~Feature 3: Add an item~~ Done in PR 3.
 4. ~~Feature 4: Try it on~~ Done in PR 4.
-5. Feature 5: Credits
+5. ~~Feature 5: Credits~~ Done in PR 5.
 6. Design the real app icon (placeholder until then)
 7. ~~Check: newer Next.js renamed `middleware.ts` to `proxy.ts`. Confirm which name the current version uses when building #1.~~ Done in PR 1: Next.js 16 uses `proxy.ts`.
 8. ~~Before first deploy: create Sloane's and Greg's accounts with "Auto Confirm User", then turn off "Allow new users to sign up".~~ Done by Sloane in the Supabase dashboard on 2026-10-12 (no PR, dashboard-only).
@@ -19,7 +19,7 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 15. ~~FASHN docs: `seed` defaults to 42, and the same seed with the same inputs reproduces the same image. Redo must send a new random seed, or it spends a credit on an identical result. Sloane approved 2026-10-12: Redo sends a new random seed. Build it in #4.~~ Done in PR 4.
 16. Idea: use FASHN `mode: "quality"` instead of `"balanced"` (docs: same 1 credit, about 12–17 s instead of about 8 s). Sloane to decide. 2026-10-12: Sloane chose to start with the normal version (v1.6, balanced); revisit after trying it.
 17. Idea: FASHN "Try-On Max" (docs: higher resolution, more item types, prompt-based customization). Different endpoint and likely a different price, so ask Greg. 2026-10-12: not now; start with v1.6 and see how it goes.
-18. Idea: show how much try-ons have cost, by counting completed try-ons in our own database (1 credit = $0.075 each). Could go with the credit balance in #5. FASHN's `GET /v1/credits` only returns the balance (`total`, `subscription`, `on_demand`), with no spending history, so our own count is the way. Sloane approved 2026-10-12: show both credits left and amount spent in #5.
+18. ~~Idea: show how much try-ons have cost, by counting completed try-ons in our own database (1 credit = $0.075 each). Could go with the credit balance in #5. FASHN's `GET /v1/credits` only returns the balance (`total`, `subscription`, `on_demand`), with no spending history, so our own count is the way. Sloane approved 2026-10-12: show both credits left and amount spent in #5.~~ Done in PR 5.
 19. Idea: logins for Sloane's brothers and boyfriend, each with their own closet and try-ons. Already supported: create each account in Supabase like #8 (sign-ups stay off). Try-ons from every account spend credits from Greg's FASHN account, so check with him.
 20. ~~Tapping an item in the closet opens nothing yet. The item screen comes with #4.~~ Done in PR 4.
 21. Lululemon blocks the preview: its security service answers "Access Denied" to any automated visit, so the screenshot option is the way in. Tested 2026-10-12: Everlane works (picture, name, $24.00 price); Aritzia also blocks.
@@ -27,3 +27,16 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 23. Idea: an iPhone Shortcut in Safari's Share menu ("Add to Sloane's Closet") that grabs the product photo from the page on her phone, like Messages does for link previews, so blocked stores still work without a screenshot.
 24. ~~Run `supabase/migrations/0002_tryon_runs.sql` in the Supabase SQL editor before merging #4 (Sloane).~~ Done by Sloane on 2026-10-13 ("Success. No rows returned").
 25. Idea: a way to remove or archive items from the closet (`archived_at` is ready in the database).
+26. New look: the home screen is a scene of Sloane in a clean, beachy closet with an ocean view.
+27. Starting outfit: she starts the scene wearing the Victoria's Secret SoSoft Modal Short Pajama Set (Coconut White & Blue Stripes).
+28. Layering: pick clothes from the closet and add them one on top of another on the same look.
+29. Changeable backgrounds: the clothes stay on Sloane, and the scene behind her can change. Needs her cut out of each look.
+30. A scene for her older brother: a more masculine, modern closet in greys, with a city and ocean view from the window.
+31. ~~Run `supabase/migrations/0003_layers_and_starting_outfit.sql` in the Supabase SQL editor before merging #26-#29 (Sloane).~~ Done by Sloane on 2026-10-13 ("Success").
+32. ~~Test the green screen for real: "Cut me out" on a photo (1 credit), then put on one piece (1 credit). Check the edges, then tune `lib/green-screen.ts` if needed.~~ Done by Sloane on 2026-10-13: works, edges look good.
+33. Green clothes would be partly erased by the green screen. If that happens, switch to a color clothes don't use.
+34. ~~Redraw both closets in an interior-design sketch style (ink lines, soft marker washes, room in perspective), keeping the beachy sea-glass colors.~~ Done in PR 6, then replaced by #35.
+35. ~~Use Sloane's own closet pictures (made with an image tool) as the two backgrounds, and make the clothes area look like the inside of a closet.~~ Done in PR 6.
+36. Idea: let each person upload their own background picture in Profile.
+37. ~~Bug: choosing "City & ocean closet" in Profile didn't switch. The choice was saved, but the app read it from the sign-in token, which keeps the old value until it renews (about an hour).~~ Done in PR 6: the app reads choices fresh and renews the sign-in after a change.
+38. ~~Use Sloane's updated room pictures (island further back) and her closet-shelf pictures for the hanging area, with a separate shelves choice in Profile.~~ Done in PR 6.

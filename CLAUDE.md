@@ -33,7 +33,7 @@ There are exactly three. They live in Vercel's project settings and never in thi
 1. **No keys in the repo.** Never ask anyone to paste a key into chat, and never write a key into a file.
 2. **Pre-commit guard.** Set up husky with a pre-commit hook that runs secretlint (`@secretlint/secretlint-rule-preset-recommend`) on staged files. The hook also rejects any staged file named `.env*` other than `.env.example`.
 3. **Sloane's photos are private.** Use one private Storage bucket, and show images only through signed URLs. Never create a public URL.
-4. **Spend credits only when Sloane taps Try On.** Never call FASHN from tests, scripts, seed data, or retry loops. `num_samples` is always 1. If a completed try-on exists for the same item and photo, show it again instead of generating a new one. The only exception is when she taps Redo and confirms.
+4. **Spend credits only when Sloane taps Try On** (including tapping a piece on the closet rail) **or Cut me out.** Never call FASHN from tests, scripts, seed data, or retry loops. `num_samples` is always 1. If a completed try-on exists for the same item and photo, show it again instead of generating a new one. The only exception is when she taps Redo and confirms.
 5. **Row-level security on every table**, with explicit grants to `authenticated`.
 
 ## Data
@@ -166,6 +166,16 @@ Keep every route short. Never wait inside a single request for FASHN to finish.
 Show a small credit balance using a server route that calls `GET https://api.fashn.ai/v1/credits` (use `credits.total`). Warn when the balance drops below 10.
 
 Next to it, show what try-ons have cost, for example "12 credits left · 23 try-ons · $1.73 spent". FASHN has no spending history, so count it ourselves: every completed run costs 1 credit ($0.075 on-demand), and failed runs cost nothing. Redo overwrites the `tryons` row, so counting rows misses Redos. Keep a running count of completed runs per try-on instead (a new migration).
+
+### 6. Closet scene (home screen)
+
+- The home screen is a scene: a background picture with Sloane standing in it. The backgrounds are illustrations Sloane made with an image tool, in `public/scenes/`. Each account picks one in Profile: "Ocean closet" (her bright beachy closet with an ocean view) or "City & ocean closet" (modern greys, for her older brother). The choice is saved in Supabase user metadata (`scene`).
+- Her clothes hang on hangers from the gold rod in a "closet shelves" picture under the scene (also Sloane's illustrations, cropped to the hanging section, in `public/shelves/`). Each background has a matching set (ocean → cream & gold, city → grey & brass), and Profile lets each account pick a different set (`shelves` in user metadata).
+- Read these choices with `getPreferences()` (`supabase.auth.getUser()`), not from the sign-in token's claims: the token only picks up metadata changes when it renews. Tap a piece to put it on, which layers it on top of the current look. Press and hold a piece to open its item screen.
+- **Layering:** a try-on can sit on an earlier try-on (`tryons.base_tryon_id`). The earlier result becomes FASHN's `model_image`. Saved combinations are free to show again. FASHN swaps clothes by type, so a new top replaces the top rather than going over it.
+- **Starting outfit:** one item per account (`closet_items.is_starting_outfit`), set from its item screen. The scene opens in it, and "Back to PJs" returns to it for free.
+- **Green screen:** "Cut me out" on a Profile photo runs FASHN `background-remove` once (1 credit, transparent PNG). The browser puts the cut-out on solid green (#00b140) and saves it as a new active photo (`person_photos.green_screen`). Try-ons on that photo keep the green, and the browser removes it (`lib/green-screen.ts`), so she stands in the scene. Without a green-screen photo, she shows in a gold mirror instead.
+- The current look is in the URL (`/?look=<tryon id>`).
 
 If anything in this file disagrees with FASHN's current docs (https://docs.fashn.ai/api-reference/tryon-v1-6), stop and tell Sloane what's different before changing the code.
 

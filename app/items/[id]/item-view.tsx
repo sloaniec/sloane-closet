@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { CreditSummary } from "@/lib/spending";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { CreditLine } from "@/components/credit-line";
+import { useCreditSummary } from "@/lib/use-credit-summary";
 import type { TryOnView } from "@/lib/tryons";
+import { setStartingOutfit } from "./actions";
 
 const POLL_MS = 2000;
 const POLL_LIMIT_MS = 60_000;
-const LOW_CREDITS = 10;
 const OUT_OF_CREDITS = "Out of credits.";
 
 type Props = {
@@ -19,31 +20,26 @@ type Props = {
     imageUrl: string;
   };
   hasPhoto: boolean;
+  isStartingOutfit: boolean;
   initialTryOn: TryOnView | null;
 };
 
-export function ItemView({ item, hasPhoto, initialTryOn }: Props) {
+export function ItemView({
+  item,
+  hasPhoto,
+  isStartingOutfit,
+  initialTryOn,
+}: Props) {
+  const [savingStart, startSavingStart] = useTransition();
   const [tryOn, setTryOn] = useState<TryOnView | null>(initialTryOn);
   const [showOriginal, setShowOriginal] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const pollStarted = useRef<number | null>(null);
-  const [summary, setSummary] = useState<CreditSummary | null>(null);
-
   // Credits left and spending, loaded on open and after each finished run.
-  const completedKey = tryOn?.status === "completed" ? tryOn.resultUrl : null;
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/credits", { cache: "no-store" })
-      .then((res) => (res.ok ? (res.json() as Promise<CreditSummary>) : null))
-      .then((data) => {
-        if (!cancelled && data) setSummary(data);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [completedKey]);
+  const summary = useCreditSummary(
+    tryOn?.status === "completed" ? tryOn.resultUrl : null,
+  );
   const outOfCredits =
     summary !== null && summary.credits !== null && summary.credits <= 0;
 
@@ -204,32 +200,21 @@ export function ItemView({ item, hasPhoto, initialTryOn }: Props) {
       </div>
 
       {summary && <CreditLine summary={summary} />}
-    </div>
-  );
-}
 
-function CreditLine({ summary }: { summary: CreditSummary }) {
-  const { credits, tryOns, spent } = summary;
-  const low = credits !== null && credits < LOW_CREDITS;
-  const creditsText =
-    credits === null
-      ? null
-      : credits <= 0
-        ? "Out of credits"
-        : low
-          ? `Only ${credits} ${credits === 1 ? "credit" : "credits"} left`
-          : `${credits} credits left`;
-  return (
-    <p className="text-center text-xs text-seaglass-deep">
-      {creditsText && (
-        <>
-          <span className={low ? "font-semibold text-coral-orange" : ""}>
-            {creditsText}
-          </span>
-          {" · "}
-        </>
+      {isStartingOutfit ? (
+        <p className="text-center text-sm font-medium text-seaglass-deep">
+          ★ Your starting outfit
+        </p>
+      ) : (
+        <button
+          type="button"
+          disabled={savingStart}
+          onClick={() => startSavingStart(() => setStartingOutfit(item.id))}
+          className="text-sm font-medium text-seaglass-deep underline-offset-4 hover:underline disabled:opacity-60"
+        >
+          Make this my starting outfit
+        </button>
       )}
-      {tryOns} {tryOns === 1 ? "try-on" : "try-ons"} · {spent} spent
-    </p>
+    </div>
   );
 }

@@ -3,6 +3,9 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
 import { PhotoCard } from "./photo-card";
+import { ScenePicker } from "./scene-picker";
+import { sceneFor, shelvesFor } from "@/components/scenes";
+import { getPreferences } from "@/lib/preferences";
 import { UploadPhotos } from "./upload-photos";
 
 const SIGNED_URL_SECONDS = 60 * 60;
@@ -43,6 +46,15 @@ export default function ProfilePage() {
         </Suspense>
       </section>
 
+      <section className="mx-auto mt-10 w-full max-w-2xl">
+        <h2 className="text-lg font-semibold">Background</h2>
+        <Suspense
+          fallback={<p className="mt-3 text-center text-sm">Loading…</p>}
+        >
+          <SceneSection />
+        </Suspense>
+      </section>
+
       <form action={signOut} className="mx-auto mt-12">
         <button
           type="submit"
@@ -59,7 +71,7 @@ async function PhotoGrid() {
   const supabase = await createClient();
   const { data: photos, error } = await supabase
     .from("person_photos")
-    .select("id, storage_path, is_active")
+    .select("id, storage_path, is_active, green_screen")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -93,9 +105,22 @@ async function PhotoGrid() {
             id={photo.id}
             url={url}
             isActive={photo.is_active}
+            greenScreen={photo.green_screen}
           />
         ) : null;
       })}
     </div>
+  );
+}
+
+async function SceneSection() {
+  const supabase = await createClient();
+  const prefs = await getPreferences(supabase);
+  const scene = sceneFor(prefs.scene);
+  return (
+    <ScenePicker
+      scene={scene.id}
+      shelves={shelvesFor(prefs.shelves, scene).id}
+    />
   );
 }

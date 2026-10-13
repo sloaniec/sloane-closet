@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { checkTryOn, getCredits, randomSeed, runTryOn } from "./fashn";
+import { checkPrediction, getCredits, randomSeed, runTryOn } from "./fashn";
 
 // A run with no answer after this long is treated as failed, so the
 // Try On button works again.
@@ -12,6 +12,7 @@ export type TryOnRow = {
   user_id: string;
   item_id: string;
   person_photo_id: string;
+  base_tryon_id: string | null;
   status: "pending" | "completed" | "failed";
   fashn_id: string | null;
   result_path: string | null;
@@ -23,13 +24,15 @@ export type TryOnRow = {
 // What the browser sees.
 export type TryOnView = {
   id: string;
+  itemId: string;
+  baseTryOnId: string | null;
   status: TryOnRow["status"];
   resultUrl: string | null;
   error: "pose" | "other" | null;
 };
 
 const COLUMNS =
-  "id, user_id, item_id, person_photo_id, status, fashn_id, result_path, error, started_at, completed_runs";
+  "id, user_id, item_id, person_photo_id, base_tryon_id, status, fashn_id, result_path, error, started_at, completed_runs";
 
 export async function toView(
   supabase: SupabaseClient,
@@ -44,6 +47,8 @@ export async function toView(
   }
   return {
     id: row.id,
+    itemId: row.item_id,
+    baseTryOnId: row.base_tryon_id,
     status: row.status,
     resultUrl,
     error:
@@ -85,7 +90,7 @@ export async function refreshTryOn(
 
   let status;
   try {
-    status = await checkTryOn(row.fashn_id);
+    status = await checkPrediction(row.fashn_id);
   } catch {
     return row; // Couldn't reach FASHN this time; the browser asks again.
   }
@@ -145,14 +150,20 @@ async function markFailed(
 
 export type StartResult =
   | { ok: true; row: TryOnRow }
-  | { ok: false; reason: "no_item" | "no_photo" | "no_credits" };
+  | {
+      ok: false;
+      reason: "no_item" | "no_photo" | "no_credits" | "bad_base";
+    };
 
-// Try On (redo = false) or Redo (redo = true) for one item and the active
-// photo. Only spends a credit when there's no usable result yet, or on Redo.
+// Try On (redo = false) or Redo (redo = true) for one item, either straight
+// onto the active photo (baseTryOnId = null) or layered on top of an
+// earlier finished try-on of that photo. Only spends a credit when there's
+// no saved result for that exact combination yet, or on Redo.
 export async function startTryOn(
   supabase: SupabaseClient,
   itemId: string,
   redo: boolean,
+  baseTryOnId: string | null = null,
 ): Promise<StartResult> {
   const { data: item } = await supabase
     .from("closet_items")
@@ -168,12 +179,35 @@ export async function startTryOn(
     .maybeSingle();
   if (!photo) return { ok: false, reason: "no_photo" };
 
-  const { data: found } = await supabase
-    .from("tryons")
-    .select(COLUMNS)
-    .eq("item_id", item.id)
-    .eq("person_photo_id", photo.id)
-    .maybeSingle<TryOnRow>();
+  // Layering: dress the picture of her already wearing the earlier pieces.
+  let modelPath = photo.storage_path;
+  if (baseTryOnId) {
+    const base = await getTryOn(supabase, baseTryOnId);
+    if (
+      !base ||
+      base.status !== "completed" ||
+      !base.result_path ||
+      base.person_photo_id !== photo.id
+    ) {
+      return { ok: false, reason: "bad_base" };
+    }
+    modelPath = base.result_path;
+  }
+
+  const findExisting = () => {
+    const query = supabase
+      .from("tryons")
+      .select(COLUMNS)
+      .eq("item_id", item.id)
+      .eq("person_photo_id", photo.id);
+    return (
+      baseTryOnId
+        ? query.eq("base_tryon_id", baseTryOnId)
+        : query.is("base_tryon_id", null)
+    ).maybeSingle<TryOnRow>();
+  };
+
+  const { data: found } = await findExisting();
   let existing = found;
   if (existing?.status === "pending") {
     existing = await refreshTryOn(supabase, existing);
@@ -190,7 +224,7 @@ export async function startTryOn(
     return { ok: false, reason: "no_credits" };
   }
 
-  // Claim the row for a new run. The database's unique (item, photo) rule
+  // Claim the row for a new run. The database's unique (item, photo, base) rule
   // and the status checks mean two quick taps can't start two runs.
   let claimed: TryOnRow | null = null;
   const startedAt = new Date().toISOString();
@@ -200,18 +234,14 @@ export async function startTryOn(
       .insert({
         item_id: item.id,
         person_photo_id: photo.id,
+        base_tryon_id: baseTryOnId,
         status: "pending",
         started_at: startedAt,
       })
       .select(COLUMNS)
       .single<TryOnRow>();
     if (error) {
-      const again = await supabase
-        .from("tryons")
-        .select(COLUMNS)
-        .eq("item_id", item.id)
-        .eq("person_photo_id", photo.id)
-        .maybeSingle<TryOnRow>();
+      const again = await findExisting();
       return again.data
         ? { ok: true, row: again.data }
         : { ok: false, reason: "no_item" };
@@ -247,10 +277,7 @@ export async function startTryOn(
   // Signed links FASHN can read for 10 minutes.
   const { data: links } = await supabase.storage
     .from("closet")
-    .createSignedUrls(
-      [photo.storage_path, item.image_path],
-      FASHN_INPUT_URL_SECONDS,
-    );
+    .createSignedUrls([modelPath, item.image_path], FASHN_INPUT_URL_SECONDS);
   const modelImageUrl = links?.[0]?.signedUrl;
   const garmentImageUrl = links?.[1]?.signedUrl;
   if (!modelImageUrl || !garmentImageUrl) {

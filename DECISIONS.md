@@ -104,3 +104,50 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 ## 2026-10-13: Spending counts this account's completed runs
 - **What:** "try-ons" is the sum of `tryons.completed_runs` for the signed-in account, Redos included. "spent" is that number × $0.075, worked out in tenths of a cent so it rounds right (23 → $1.73). "credits left" is Greg's shared FASHN balance.
 - **Why:** FASHN has no spending history. Each account sees only its own rows, so a brother's or boyfriend's try-ons show on their own screen, not Sloane's.
+
+## 2026-10-13: The closet scene is the home screen
+- **What:**
+  - **The scene:** a drawn closet (no photos), with Sloane standing in it. A rail of her clothes runs along the bottom: tap to put on and layer, press and hold for details and Shop. **+** and a Profile icon sit in the corners.
+  - **Buttons:** "Back to PJs" returns to her starting outfit, and Redo asks "Uses 1 credit." first.
+  - **Backgrounds:** each account picks one in Profile.
+- **Why:** Sloane wants to start in her closet with an ocean view, wearing her Victoria's Secret PJs, and get dressed from there. She chose drawn art, tap-to-add, a "Back to PJs" button, and icons on the scene.
+- **Rejected:** A real or stock photo background; building a whole outfit and then trying it on; an undo-one-layer button; keeping the old closet grid as home.
+
+## 2026-10-13: Layering means trying the next piece on the last picture
+- **What:** Each piece is tried on the picture of her already wearing the earlier pieces, at 1 credit per piece. Every combination is saved and free to see again.
+- **Why:** FASHN v1.6 dresses one piece at a time.
+- **Limit:** FASHN swaps by type, so a new top replaces the top. Jackets over tops aren't guaranteed.
+
+## 2026-10-13: Green screen, so the clothes stick to her and the background can change
+- **What:** "Cut me out" (FASHN Background Remove, 1 credit, once per photo) → the cut-out goes on solid green (#00b140) → saved as a new active photo. Try-ons keep the green, and the app removes it for free in the browser, unmixing green from edge pixels.
+- **Why:** Sloane wants the background changeable, with her cut out once instead of on every look.
+- **Rejected:** Paying 1 credit to cut out every look; Google MediaPipe in the browser (a new library, with softer edges).
+- **Risks:** green clothes; slight edge tint. Both can be tuned in code without spending credits.
+
+## 2026-10-13: Brother's background
+- **What:** "City & ocean closet": modern greys, dark shelves, a black-framed window onto a city skyline and the ocean.
+- **Why:** Sloane asked for a more masculine, modern closet for her older brother.
+- **Where it's saved:** each person's choice is on their own account (Supabase user metadata), so his account opens in his scene.
+
+## 2026-10-13: Closets drawn like an interior designer's marker sketch
+- **What:** Both backgrounds are one-point-perspective rooms with thin ink lines over soft marker washes (`components/sketch-room.tsx`). Each has a hanging rail on the left, drawers with knobs and cubbies on the right, a runner rug, and a light fixture. Sloane's ocean closet has white built-ins, sea-glass and sand washes, gold knobs, a palm-leaf chandelier, and an arched ocean window. Her brother's city closet has greys, dark ink, a linear light, and a gridded city-and-ocean window.
+- **Why:** Sloane shared a hand-drawn walk-in closet sketch she loves, and asked for that style with the beachy sea-glass colors kept.
+- **Rejected:** The earlier flat, front-on drawings.
+
+## 2026-10-13: Backgrounds are Sloane's own pictures, not drawn in code
+- **What:** The two backgrounds are illustrations Sloane made with an image tool (`public/scenes/ocean-closet.webp`, `public/scenes/city-closet.webp`). The code-drawn sketch rooms are removed.
+- **Why:** Drawings made in code looked too flat next to the style she wanted. Pictures she makes herself have real depth and texture, and they're hers to use. They're kept in the public repo, which is fine because they contain nothing personal.
+- **Rejected:** More code drawing; using someone else's artwork (not ours to publish).
+
+## 2026-10-13: The clothes area is the inside of a closet
+- **What:** Under the scene, her clothes hang on hangers from a rod in a wood cabinet with a warm strip light and a shelf. The colors follow the background: cream wood with a gold rod for the ocean closet, grey wood with a nickel rod for the city closet. The scene is a little shorter so the closet fits on a phone screen.
+- **Why:** Sloane asked for the clothes selection area to look like the inside of a closet.
+
+## 2026-10-13: Clothes hang in Sloane's closet-shelf pictures
+- **What:** The hanging area is Sloane's shelf illustration, cropped to the bay with the gold rod. Her clothes hang from that rod on hangers and scroll sideways. Profile → Background has a second row, "Closet shelves", so each account can mix and match. By default the shelves follow the background: "Cream & gold" with the ocean closet, "Grey & brass" with the city closet.
+- **Why:** Sloane asked for the clothes area to look like her shelf pictures, with an option to change it, where the cream set goes with her closet and the greyer set with her brother's.
+- **Rejected:** The wood cabinet built in code; showing the whole two-bay picture (too small on a phone to hang clothes in).
+
+## 2026-10-13: Read background choices fresh, not from the sign-in token
+- **What:** `lib/preferences.ts` reads choices with `supabase.auth.getUser()`. Saving a choice also renews the sign-in.
+- **Why:** The sign-in token carries a copy of the account's settings that only updates when it renews, so a new choice didn't show up.

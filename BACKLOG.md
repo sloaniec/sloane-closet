@@ -27,11 +27,11 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 23. Idea: an iPhone Shortcut in Safari's Share menu ("Add to Sloane's Closet") that grabs the product photo from the page on her phone, like Messages does for link previews, so blocked stores still work without a screenshot.
 24. ~~Run `supabase/migrations/0002_tryon_runs.sql` in the Supabase SQL editor before merging #4 (Sloane).~~ Done by Sloane on 2026-10-13 ("Success. No rows returned").
 25. Idea: a way to remove or archive items from the closet (`archived_at` is ready in the database).
-26. New look: the home screen is a scene of Sloane in a clean, beachy closet with an ocean view.
-27. Starting outfit: she starts the scene wearing the Victoria's Secret SoSoft Modal Short Pajama Set (Coconut White & Blue Stripes).
-28. Layering: pick clothes from the closet and add them one on top of another on the same look.
-29. Changeable backgrounds: the clothes stay on Sloane, and the scene behind her can change. Needs her cut out of each look.
-30. A scene for her older brother: a more masculine, modern closet in greys, with a city and ocean view from the window.
+26. ~~New look: the home screen is a scene of Sloane in a clean, beachy closet with an ocean view.~~ Done in PR 6.
+27. ~~Starting outfit: she starts the scene wearing the Victoria's Secret SoSoft Modal Short Pajama Set (Coconut White & Blue Stripes).~~ Done in PR 6.
+28. ~~Layering: pick clothes from the closet and add them one on top of another on the same look.~~ Done in PR 6.
+29. ~~Changeable backgrounds: the clothes stay on Sloane, and the scene behind her can change. Needs her cut out of each look.~~ Done in PR 6.
+30. ~~A scene for her older brother: a more masculine, modern closet in greys, with a city and ocean view from the window.~~ Done in PR 6.
 31. ~~Run `supabase/migrations/0003_layers_and_starting_outfit.sql` in the Supabase SQL editor before merging #26-#29 (Sloane).~~ Done by Sloane on 2026-10-13 ("Success").
 32. ~~Test the green screen for real: "Cut me out" on a photo (1 credit), then put on one piece (1 credit). Check the edges, then tune `lib/green-screen.ts` if needed.~~ Done by Sloane on 2026-10-13: works, edges look good.
 33. Green clothes would be partly erased by the green screen. If that happens, switch to a color clothes don't use.

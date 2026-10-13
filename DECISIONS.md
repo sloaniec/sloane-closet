@@ -201,3 +201,8 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** When the arrows land on a piece that goes on, its "Wearing" card fades out over the last half second and disappears at 3 seconds (the highlight in the closet goes too). A "Put on" card stays until she taps it or moves on.
 - **Why:** Sloane asked for the Wearing tag to go away after a few seconds so it doesn't cover her outfit.
 - **Rejected:** Hiding every card, including Put on (she needs that button to stay).
+
+## 2026-10-13: White buttons with gold outlines; Cormorant Garamond font
+- **What:** Every plain button and tag (Profile, +, Back to PJs, Redo, Make it exact, Put on, Sign In, Try On, Shop, back links, section labels, the Mixed tag) is white with a thin gold outline (`btn`, `btn-round`, `pill` in `globals.css`). The whole app uses Cormorant Garamond (via `next/font`, no new library), with `font-size-adjust` so small text stays readable. Sloane's painted arrows and signs keep their own look.
+- **Why:** Sloane asked for white outlined buttons and prettier text, and chose Cormorant (fancy, like an invitation) and gold outlines from a side-by-side.
+- **Rejected:** Playfair Display, Lora, Quicksand; sea-glass or dark teal outlines; restyling her painted pictures.

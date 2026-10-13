@@ -138,7 +138,7 @@ export function ItemView({
           className="aspect-[2/3] w-full object-cover"
         />
         {canFlip && (
-          <span className="absolute left-3 top-3 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-tide shadow">
+          <span className="absolute left-3 top-3 pill">
             {showingResult ? "On me" : "Original"}
           </span>
         )}
@@ -177,7 +177,7 @@ export function ItemView({
             type="button"
             disabled={working}
             onClick={() => void start(true)}
-            className="flex-1 rounded-full bg-sunshine px-6 py-3 text-base font-semibold text-tide shadow-sm transition active:scale-[0.98] disabled:opacity-60"
+            className="btn flex-1 px-6 py-3 text-lg"
           >
             Redo
           </button>
@@ -190,7 +190,7 @@ export function ItemView({
                 ? void start(false)
                 : setNotice("Add a photo of yourself in Profile first.")
             }
-            className="flex-1 rounded-full bg-sunshine px-6 py-3 text-base font-semibold text-tide shadow-sm transition active:scale-[0.98] disabled:opacity-60"
+            className="btn flex-1 px-6 py-3 text-lg"
           >
             Try On
           </button>
@@ -199,7 +199,7 @@ export function ItemView({
           href={item.productUrl}
           target="_blank"
           rel="noopener"
-          className="flex-1 rounded-full bg-seaglass px-6 py-3 text-center text-base font-semibold text-tide shadow-sm transition active:scale-[0.98]"
+          className="btn flex-1 px-6 py-3 text-lg"
         >
           Shop
         </a>
@@ -225,8 +225,8 @@ export function ItemView({
               }
               className={`rounded-xl px-2 py-2 text-sm font-medium ring-1 transition disabled:opacity-60 ${
                 kind === k.value
-                  ? "bg-seaglass ring-seaglass-deep"
-                  : "bg-shell ring-seaglass"
+                  ? "bg-sunshine/30 ring-2 ring-gold"
+                  : "bg-white ring-gold/60"
               }`}
             >
               {k.label}

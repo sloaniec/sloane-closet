@@ -78,11 +78,11 @@ export function ClosetSections({
             <div className="absolute inset-0 [&_img]:object-bottom">
               <FillImage src={shelves.parts[section.part]} />
             </div>
-            <span className="absolute left-2 top-1 z-10 rounded-full bg-shell/85 px-2 py-0.5 text-[11px] font-semibold text-tide shadow-sm">
+            <span className="absolute left-2 top-1 z-10 pill px-2 py-0.5 text-[12px]">
               {section.label}
             </span>
             {inSection.length === 0 ? (
-              <span className="absolute bottom-3 right-3 rounded-full bg-shell/80 px-2 py-0.5 text-[11px] text-seaglass-deep">
+              <span className="absolute bottom-3 right-3 pill px-2 py-0.5 text-[12px] font-medium text-seaglass-deep">
                 Nothing here yet
               </span>
             ) : (

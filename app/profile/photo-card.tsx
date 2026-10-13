@@ -77,12 +77,10 @@ export function PhotoCard({
       {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL */}
       <img src={url} alt="" className="aspect-[2/3] w-full object-cover" />
       {isActive && (
-        <span className="absolute left-2 top-2 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-tide shadow">
-          Using this one
-        </span>
+        <span className="absolute left-2 top-2 pill">Using this one</span>
       )}
       {greenScreen && (
-        <span className="absolute right-2 top-2 rounded-full bg-shell/90 px-2 py-1 text-xs font-semibold text-seaglass-deep shadow">
+        <span className="absolute right-2 top-2 pill px-2 text-seaglass-deep">
           Cut out
         </span>
       )}
@@ -97,7 +95,7 @@ export function PhotoCard({
             type="button"
             disabled={pending || cutting}
             onClick={() => void cutMeOut()}
-            className="rounded-full bg-sunshine px-3 py-2 font-medium text-tide"
+            className="btn px-3 py-2"
           >
             Cut me out
           </button>
@@ -112,7 +110,7 @@ export function PhotoCard({
             type="button"
             disabled={pending}
             onClick={() => startTransition(() => setActivePhoto(id))}
-            className="rounded-full bg-seaglass px-3 py-2 font-medium text-tide"
+            className="btn px-3 py-2"
           >
             Use this one
           </button>

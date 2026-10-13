@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
 import { PhotoCard } from "./photo-card";
 import { ScenePicker } from "./scene-picker";
+import { sceneFor, shelvesFor } from "@/components/scenes";
+import { getPreferences } from "@/lib/preferences";
 import { UploadPhotos } from "./upload-photos";
 
 const SIGNED_URL_SECONDS = 60 * 60;
@@ -113,8 +115,12 @@ async function PhotoGrid() {
 
 async function SceneSection() {
   const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const scene = (data?.claims?.user_metadata as { scene?: string } | undefined)
-    ?.scene;
-  return <ScenePicker current={scene ?? "ocean-closet"} />;
+  const prefs = await getPreferences(supabase);
+  const scene = sceneFor(prefs.scene);
+  return (
+    <ScenePicker
+      scene={scene.id}
+      shelves={shelvesFor(prefs.shelves, scene).id}
+    />
+  );
 }

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { getPreferences } from "@/lib/preferences";
 import { createClient } from "@/lib/supabase/server";
 import { getTryOn, type TryOnRow } from "@/lib/tryons";
 import { ClosetScene, type Look, type RailItem } from "./closet-scene";
@@ -27,9 +28,7 @@ async function SceneLoader({
 }) {
   const { look: lookParam } = await searchParams;
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getClaims();
-  const scene = (auth?.claims?.user_metadata as { scene?: string } | undefined)
-    ?.scene;
+  const prefs = await getPreferences(supabase);
 
   const [{ data: photo }, { data: items }] = await Promise.all([
     supabase
@@ -113,7 +112,8 @@ async function SceneLoader({
 
   return (
     <ClosetScene
-      sceneId={scene ?? null}
+      sceneId={prefs.scene}
+      shelvesId={prefs.shelves}
       photo={
         photo
           ? {

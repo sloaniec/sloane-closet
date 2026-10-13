@@ -142,3 +142,12 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 ## 2026-10-13: The clothes area is the inside of a closet
 - **What:** Under the scene, her clothes hang on hangers from a rod in a wood cabinet with a warm strip light and a shelf. The colors follow the background: cream wood with a gold rod for the ocean closet, grey wood with a nickel rod for the city closet. The scene is a little shorter so the closet fits on a phone screen.
 - **Why:** Sloane asked for the clothes selection area to look like the inside of a closet.
+
+## 2026-10-13: Clothes hang in Sloane's closet-shelf pictures
+- **What:** The hanging area is Sloane's shelf illustration, cropped to the bay with the gold rod. Her clothes hang from that rod on hangers and scroll sideways. Profile → Background has a second row, "Closet shelves", so each account can mix and match. By default the shelves follow the background: "Cream & gold" with the ocean closet, "Grey & brass" with the city closet.
+- **Why:** Sloane asked for the clothes area to look like her shelf pictures, with an option to change it, where the cream set goes with her closet and the greyer set with her brother's.
+- **Rejected:** The wood cabinet built in code; showing the whole two-bay picture (too small on a phone to hang clothes in).
+
+## 2026-10-13: Read background choices fresh, not from the sign-in token
+- **What:** `lib/preferences.ts` reads choices with `supabase.auth.getUser()`. Saving a choice also renews the sign-in.
+- **Why:** The sign-in token carries a copy of the account's settings that only updates when it renews, so a new choice didn't show up.

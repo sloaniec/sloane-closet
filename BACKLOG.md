@@ -36,5 +36,7 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 32. ~~Test the green screen for real: "Cut me out" on a photo (1 credit), then put on one piece (1 credit). Check the edges, then tune `lib/green-screen.ts` if needed.~~ Done by Sloane on 2026-10-13: works, edges look good.
 33. Green clothes would be partly erased by the green screen. If that happens, switch to a color clothes don't use.
 34. ~~Redraw both closets in an interior-design sketch style (ink lines, soft marker washes, room in perspective), keeping the beachy sea-glass colors.~~ Done in PR 6, then replaced by #35.
-35. Use Sloane's own closet pictures (made with an image tool) as the two backgrounds, and make the clothes area look like the inside of a closet.
+35. ~~Use Sloane's own closet pictures (made with an image tool) as the two backgrounds, and make the clothes area look like the inside of a closet.~~ Done in PR 6.
 36. Idea: let each person upload their own background picture in Profile.
+37. ~~Bug: choosing "City & ocean closet" in Profile didn't switch. The choice was saved, but the app read it from the sign-in token, which keeps the old value until it renews (about an hour).~~ Done in PR 6: the app reads choices fresh and renews the sign-in after a change.
+38. ~~Use Sloane's updated room pictures (island further back) and her closet-shelf pictures for the hanging area, with a separate shelves choice in Profile.~~ Done in PR 6.

@@ -4,7 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CreditLine } from "@/components/credit-line";
-import { SceneImage, sceneFor, type Scene } from "@/components/scenes";
+import {
+  FillImage,
+  sceneFor,
+  shelvesFor,
+  type Shelves,
+} from "@/components/scenes";
 import { keyOutGreen } from "@/lib/green-screen";
 import { pollUntilDone } from "@/lib/poll";
 import type { TryOnView } from "@/lib/tryons";
@@ -24,6 +29,7 @@ export type RailItem = { id: string; title: string; imageUrl: string };
 
 type Props = {
   sceneId: string | null;
+  shelvesId: string | null;
   photo: { url: string; greenScreen: boolean } | null;
   items: RailItem[];
   startingItemId: string | null;
@@ -40,6 +46,7 @@ const ERRORS: Record<string, string> = {
 
 export function ClosetScene({
   sceneId,
+  shelvesId,
   photo,
   items,
   startingItemId,
@@ -47,6 +54,7 @@ export function ClosetScene({
   initialLook,
 }: Props) {
   const scene = sceneFor(sceneId);
+  const shelves = shelvesFor(shelvesId, scene);
   const [look, setLook] = useState<Look | null>(initialLook);
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -182,7 +190,7 @@ export function ClosetScene({
   return (
     <div className="mx-auto flex w-full max-w-md flex-col">
       <div className="relative h-[54vh] min-h-[380px] w-full overflow-hidden rounded-b-3xl shadow-sm">
-        <SceneImage scene={scene} priority />
+        <FillImage src={scene.image} priority />
 
         {/* Corners: Profile and add clothes */}
         <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
@@ -307,12 +315,12 @@ export function ClosetScene({
             <p className="text-center text-xs">
               Tap to put on · Hold for details
             </p>
-            <ClosetRail scene={scene}>
+            <ClosetRail shelves={shelves}>
               {items.map((item) => (
                 <RailCard
                   key={item.id}
                   item={item}
-                  hook={scene.rail.hook}
+                  hook={shelves.hook}
                   wearing={look?.itemIds.includes(item.id) ?? false}
                   onTap={() => putOn(item)}
                 />
@@ -368,10 +376,10 @@ function RailCard({
           strokeLinecap="round"
         />
         <path
-          d="M48 22 L14 29 M48 22 L82 29"
+          d="M48 22 L12 29 M48 22 L84 29"
           fill="none"
-          stroke={hook}
-          strokeWidth="2.6"
+          stroke="#c98f62"
+          strokeWidth="3.4"
           strokeLinecap="round"
         />
       </svg>
@@ -412,32 +420,31 @@ function RailCard({
   );
 }
 
-// The inside of a closet: a wood cabinet with a warm strip light, a hanging
-// rod, and a shelf at the bottom. Colors follow the chosen background.
+// The inside of a closet: Sloane's shelves picture, with her clothes
+// hanging on hangers from its gold rod. Scrolls sideways along the rod.
 function ClosetRail({
-  scene,
+  shelves,
   children,
 }: {
-  scene: Scene;
+  shelves: Shelves;
   children: React.ReactNode;
 }) {
+  const { top, left, right } = shelves.rod;
   return (
-    <div
-      className="relative -mx-2 overflow-hidden rounded-2xl border-[6px] shadow-[inset_0_8px_18px_rgba(0,0,0,0.14)]"
-      style={{
-        borderColor: "rgba(255,255,255,0.75)",
-        background: `repeating-linear-gradient(90deg, ${scene.rail.grain} 0 1px, transparent 1px 26px), linear-gradient(180deg, ${scene.rail.wood})`,
-      }}
-    >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-[#fff3d1]/90 to-transparent" />
-      <div
-        className="pointer-events-none absolute inset-x-2 top-[14px] h-2 rounded-full shadow-[0_2px_3px_rgba(0,0,0,0.25)]"
-        style={{ background: `linear-gradient(180deg, ${scene.rail.rod})` }}
-      />
-      <ul className="relative flex snap-x gap-4 overflow-x-auto px-4 pb-5 pt-1">
+    <div className="relative -mx-2 aspect-[665/450] overflow-hidden rounded-2xl shadow-md">
+      <FillImage src={shelves.image} />
+      <ul
+        className="absolute bottom-0 flex snap-x gap-3 overflow-x-auto"
+        style={{
+          top: `calc(${top}% - 7px)`,
+          left: `${left}%`,
+          right: `${right}%`,
+          paddingLeft: "4%",
+          paddingRight: "4%",
+        }}
+      >
         {children}
       </ul>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-black/10" />
     </div>
   );
 }

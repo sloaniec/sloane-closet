@@ -1,18 +1,24 @@
 import Image from "next/image";
 
-// The backgrounds someone can stand in: pictures Sloane made with an image
-// tool. Each account picks its own in Profile (saved on the account, so it
-// follows them to any device). `rail` styles the closet the clothes hang in.
+// Pictures Sloane made with an image tool. Each account picks a background
+// (the room she stands in) and a set of closet shelves (where her clothes
+// hang), saved on the account. The shelves default to the set that goes
+// with the background.
+
 export type Scene = {
   id: string;
   label: string;
   image: string;
-  rail: {
-    wood: string; // cabinet colors, top to bottom
-    grain: string;
-    rod: string; // hanging rod, light to dark
-    hook: string;
-  };
+  shelves: string; // the shelves that go with this background
+};
+
+export type Shelves = {
+  id: string;
+  label: string;
+  image: string; // cropped to the hanging section
+  // Where the gold rod runs, as % of the picture.
+  rod: { top: number; left: number; right: number };
+  hook: string;
 };
 
 export const SCENES: Scene[] = [
@@ -20,23 +26,30 @@ export const SCENES: Scene[] = [
     id: "ocean-closet",
     label: "Ocean closet",
     image: "/scenes/ocean-closet.webp",
-    rail: {
-      wood: "#fbf6ee, #f1e6d3",
-      grain: "rgba(201, 178, 138, 0.18)",
-      rod: "#f6d48a, #c8901f",
-      hook: "#c8901f",
-    },
+    shelves: "ocean-shelves",
   },
   {
     id: "city-closet",
     label: "City & ocean closet",
     image: "/scenes/city-closet.webp",
-    rail: {
-      wood: "#e3e1dd, #c9c5bf",
-      grain: "rgba(90, 90, 90, 0.14)",
-      rod: "#e6e8ea, #8d939a",
-      hook: "#8d939a",
-    },
+    shelves: "city-shelves",
+  },
+];
+
+export const SHELVES: Shelves[] = [
+  {
+    id: "ocean-shelves",
+    label: "Cream & gold",
+    image: "/shelves/ocean-shelves.webp",
+    rod: { top: 14.4, left: 3, right: 9 },
+    hook: "#c8901f",
+  },
+  {
+    id: "city-shelves",
+    label: "Grey & brass",
+    image: "/shelves/city-shelves.webp",
+    rod: { top: 13, left: 3, right: 6 },
+    hook: "#a8822f",
   },
 ];
 
@@ -44,17 +57,25 @@ export function sceneFor(id: unknown): Scene {
   return SCENES.find((s) => s.id === id) ?? SCENES[0];
 }
 
-// The background picture, filling its box.
-export function SceneImage({
-  scene,
+export function shelvesFor(id: unknown, scene: Scene): Shelves {
+  return (
+    SHELVES.find((s) => s.id === id) ??
+    SHELVES.find((s) => s.id === scene.shelves) ??
+    SHELVES[0]
+  );
+}
+
+// A picture filling its box.
+export function FillImage({
+  src,
   priority = false,
 }: {
-  scene: Scene;
+  src: string;
   priority?: boolean;
 }) {
   return (
     <Image
-      src={scene.image}
+      src={src}
       alt=""
       fill
       priority={priority}

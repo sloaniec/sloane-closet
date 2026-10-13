@@ -10,8 +10,11 @@ export type Scene = {
   label: string;
   image: string;
   shelves: string; // the shelves that go with this background
-  // Sloane's painted buttons for this background (round pictures).
-  buttons?: { prev: string; next: string; add: string };
+  // Sloane's title sign for this background.
+  // `shown` is its width on screen, in px.
+  sign: { src: string; width: number; height: number; shown: number };
+  // Her painted arrow buttons for this background (round pictures).
+  arrows?: { prev: string; next: string };
 };
 
 export type Shelves = {
@@ -30,10 +33,10 @@ export const SCENES: Scene[] = [
     label: "Ocean closet",
     image: "/scenes/ocean-closet.webp",
     shelves: "ocean-shelves",
-    buttons: {
+    sign: { src: "/brand/sign.webp", width: 900, height: 415, shown: 160 },
+    arrows: {
       prev: "/buttons/ocean-prev.webp",
       next: "/buttons/ocean-next.webp",
-      add: "/buttons/ocean-add.webp",
     },
   },
   {
@@ -41,6 +44,16 @@ export const SCENES: Scene[] = [
     label: "City & ocean closet",
     image: "/scenes/city-closet.webp",
     shelves: "city-shelves",
+    sign: {
+      src: "/brand/city-sign.webp",
+      width: 900,
+      height: 301,
+      shown: 190,
+    },
+    arrows: {
+      prev: "/buttons/city-prev.webp",
+      next: "/buttons/city-next.webp",
+    },
   },
 ];
 

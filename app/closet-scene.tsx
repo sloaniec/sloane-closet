@@ -477,24 +477,21 @@ export function ClosetScene({
             </svg>
           </Link>
           <Image
-            src="/brand/sign.webp"
+            src={scene.sign.src}
             alt="Sloane's Closet"
-            width={900}
-            height={415}
+            width={scene.sign.width}
+            height={scene.sign.height}
             priority
-            sizes="160px"
-            className="h-auto w-[min(160px,45vw)] drop-shadow-md"
+            sizes={`${scene.sign.shown}px`}
+            style={{ width: `min(${scene.sign.shown}px, 50vw)` }}
+            className="h-auto drop-shadow-md"
           />
           <Link
             href="/add"
             aria-label="Add an item"
-            className={
-              scene.buttons
-                ? "block h-12 w-12 rounded-full transition active:scale-90"
-                : "flex h-11 w-11 items-center justify-center rounded-full bg-sunshine text-3xl font-light leading-none text-tide shadow ring-2 ring-gold"
-            }
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-sunshine text-3xl font-light leading-none text-tide shadow ring-2 ring-gold"
           >
-            {scene.buttons ? <ButtonArt src={scene.buttons.add} /> : "+"}
+            +
           </Link>
         </div>
 
@@ -557,15 +554,15 @@ export function ClosetScene({
                     onClick={() => step(row.section, delta)}
                     aria-label={`${delta === -1 ? "Previous" : "Next"} ${row.label}`}
                     className={
-                      scene.buttons
+                      scene.arrows
                         ? "pointer-events-auto block h-12 w-12 rounded-full transition active:scale-90 disabled:opacity-50"
                         : "pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-shell/90 text-2xl leading-none text-tide shadow ring-1 ring-seaglass transition active:scale-90 disabled:opacity-50"
                     }
                   >
-                    {scene.buttons ? (
+                    {scene.arrows ? (
                       <ButtonArt
                         src={
-                          delta === -1 ? scene.buttons.prev : scene.buttons.next
+                          delta === -1 ? scene.arrows.prev : scene.arrows.next
                         }
                       />
                     ) : delta === -1 ? (

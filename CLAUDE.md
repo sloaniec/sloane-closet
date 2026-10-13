@@ -89,7 +89,7 @@ Set up:
 - the app and Tailwind
 - the Supabase clients (browser, server, and middleware)
 - the sign-in page and an empty closet screen
-- the web manifest, with a placeholder icon until Sloane designs one (done: her "S" plaque is the icon, and her sign `public/brand/sign.webp` is the title on sign-in and in the scene)
+- the web manifest, with a placeholder icon until Sloane designs one (done: her "S" plaque is the icon; her sign `public/brand/sign.webp` is the title on sign-in, and each background shows its own sign)
 - `.env.example`
 - husky and secretlint
 - `0001_init.sql` with all tables, policies, the storage bucket, the storage policies, and `meta.whoami()`
@@ -169,7 +169,7 @@ Next to it, show what try-ons have cost, for example "12 credits left · 23 try-
 
 ### 6. Closet scene (home screen)
 
-- The home screen is a scene: a background picture with Sloane standing in it. The backgrounds are illustrations Sloane made with an image tool, in `public/scenes/`. Each account picks one in Profile: "Ocean closet" (her bright beachy closet with an ocean view) or "City & ocean closet" (modern greys, for her older brother). The choice is saved in Supabase user metadata (`scene`). A background can have its own painted arrow and + buttons (`buttons` in `SCENES`, pictures in `public/buttons/`); the Ocean closet has Sloane's gold-and-wood set.
+- The home screen is a scene: a background picture with Sloane standing in it. The backgrounds are illustrations Sloane made with an image tool, in `public/scenes/`. Each account picks one in Profile: "Ocean closet" (her bright beachy closet with an ocean view) or "City & ocean closet" (modern greys, for her older brother). The choice is saved in Supabase user metadata (`scene`). Each background has its own title sign (`sign` in `SCENES`, `public/brand/`) and painted arrow buttons (`arrows`, `public/buttons/`); the + stays plain.
 - Her clothes hang on hangers from the gold rod in a "closet shelves" picture under the scene (also Sloane's illustrations, cropped to the hanging section, in `public/shelves/`). Each background has a matching set (ocean → cream & gold, city → grey & brass), and Profile lets each account pick a different set (`shelves` in user metadata).
 - Read these choices with `getPreferences()` (`supabase.auth.getUser()`), not from the sign-in token's claims: the token only picks up metadata changes when it renews. Tap a piece to put it on, which layers it on top of the current look. Press and hold a piece to open its item screen.
 - **Layering:** a try-on can sit on an earlier try-on (`tryons.base_tryon_id`). The earlier result becomes FASHN's `model_image`. Saved combinations are free to show again. FASHN swaps clothes by type, so a new top replaces the top rather than going over it.

@@ -47,7 +47,7 @@ export function UploadPhotos() {
   return (
     <div className="flex flex-col items-center gap-2">
       <label
-        className={`cursor-pointer rounded-full bg-sunshine px-6 py-3 text-base font-semibold text-tide shadow-sm transition active:scale-[0.98] ${busy ? "pointer-events-none opacity-60" : ""}`}
+        className={`btn cursor-pointer px-6 py-3 text-lg ${busy ? "pointer-events-none opacity-60" : ""}`}
       >
         {status ?? "Upload my photos"}
         <input

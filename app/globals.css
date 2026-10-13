@@ -22,7 +22,30 @@
   --color-sunshine: var(--sunshine);
   --color-gold: var(--gold);
   --color-coral-orange: var(--coral-orange);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-cormorant);
+  /* The "Wearing" card: stays, then fades out over its last half second. */
+  --animate-fade-away: fade-away 3s ease-in forwards;
+  @keyframes fade-away {
+    0%,
+    83% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+}
+
+/* Buttons: white with a thin gold outline. (Sloane's painted arrows and
+   signs are pictures and keep their own look.) */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full border-[1.5px] border-gold bg-white px-5 py-2.5 font-semibold text-tide shadow-sm transition active:scale-[0.98] disabled:opacity-60;
+}
+@utility btn-round {
+  @apply flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-gold bg-white leading-none text-tide shadow transition active:scale-90 disabled:opacity-50;
+}
+@utility pill {
+  @apply rounded-full border border-gold bg-white px-3 py-1 text-xs font-semibold text-tide shadow-sm;
 }
 
 html {
@@ -31,6 +54,10 @@ html {
 }
 
 body {
+  /* Cormorant's small letters are short; this sizes them like other fonts
+     so small text stays easy to read. */
+  font-size-adjust: 0.48;
+  font-weight: 500;
   /* No repeat: long pages fade into sand instead of restarting the gradient. */
   background: var(--sand) linear-gradient(180deg, #e3f4ee 0%, var(--sand) 45%)
     no-repeat;

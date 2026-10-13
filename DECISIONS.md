@@ -196,3 +196,13 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** Each background has its own title sign (`sign` in `SCENES`, pictures in `public/brand/`) and painted arrow buttons (`arrows`, pictures in `public/buttons/`). Ocean closet: the cream sign with hibiscus and the round gold-and-wood arrows (the "next" arrow is her left arrow flipped, so the pair matches). City & ocean closet: the driftwood-and-brass sign and arrows Sloane made for her brother. The + stays the plain yellow button on both.
 - **Why:** Sloane asked for her buttons as part of her beach closet and made a separate set for her brother's city closet. She tried a painted + and chose the plain one.
 - **Rejected:** The same buttons for every background; a painted + button; her flowered right arrow (kept in the scratchpad in case she wants it).
+
+## 2026-10-13: The "Wearing" card fades after 3 seconds
+- **What:** When the arrows land on a piece that goes on, its "Wearing" card fades out over the last half second and disappears at 3 seconds (the highlight in the closet goes too). A "Put on" card stays until she taps it or moves on.
+- **Why:** Sloane asked for the Wearing tag to go away after a few seconds so it doesn't cover her outfit.
+- **Rejected:** Hiding every card, including Put on (she needs that button to stay).
+
+## 2026-10-13: White buttons with gold outlines; Cormorant Garamond font
+- **What:** Every plain button and tag (Profile, +, Back to PJs, Redo, Make it exact, Put on, Sign In, Try On, Shop, back links, section labels, the Mixed tag) is white with a thin gold outline (`btn`, `btn-round`, `pill` in `globals.css`). The whole app uses Cormorant Garamond (via `next/font`, no new library), with `font-size-adjust` so small text stays readable. Sloane's painted arrows and signs keep their own look.
+- **Why:** Sloane asked for white outlined buttons and prettier text, and chose Cormorant (fancy, like an invitation) and gold outlines from a side-by-side.
+- **Rejected:** Playfair Display, Lora, Quicksand; sea-glass or dark teal outlines; restyling her painted pictures.

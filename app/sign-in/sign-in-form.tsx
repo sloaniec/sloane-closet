@@ -36,7 +36,7 @@ export function SignInForm() {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 rounded-full bg-sunshine px-6 py-3 text-base font-semibold text-tide shadow-sm transition active:scale-[0.98] disabled:opacity-60"
+        className="btn mt-2 px-6 py-3 text-lg"
       >
         {pending ? "Signing in…" : "Sign In"}
       </button>

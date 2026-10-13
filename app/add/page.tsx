@@ -5,7 +5,7 @@ export default function AddItemPage() {
   return (
     <main className="flex flex-1 flex-col px-6 pb-10 pt-[max(1.5rem,env(safe-area-inset-top))]">
       <header className="mx-auto flex w-full max-w-2xl items-center justify-between">
-        <Link href="/" className="text-sm font-medium text-seaglass-deep">
+        <Link href="/" className="btn px-4 py-1.5 text-base">
           ← Closet
         </Link>
         <h1 className="text-2xl font-bold tracking-tight">Add an item</h1>

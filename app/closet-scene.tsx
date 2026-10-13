@@ -350,6 +350,19 @@ export function ClosetScene({
     ? items.filter((i) => i.section === browse.section)[browse.index]
     : null;
 
+  // Once the piece the arrows landed on is on, its "Wearing" card fades
+  // away after a few seconds. A "Put on" card stays until she decides.
+  const WEARING_CARD_MS = 3000;
+  const wearingCard =
+    browsing && checking !== browsing.id && worn.includes(browsing.id)
+      ? browsing.id
+      : null;
+  useEffect(() => {
+    if (!wearingCard) return;
+    const timer = setTimeout(() => setBrowse(null), WEARING_CARD_MS);
+    return () => clearTimeout(timer);
+  }, [wearingCard]);
+
   function putOn(item: RailItem) {
     if (working) return;
     setBrowse(null);
@@ -459,11 +472,7 @@ export function ClosetScene({
 
         {/* Corners: Profile and add clothes */}
         <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <Link
-            href="/profile"
-            aria-label="Profile"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-shell/90 text-tide shadow"
-          >
+          <Link href="/profile" aria-label="Profile" className="btn-round">
             <svg
               viewBox="0 0 24 24"
               className="h-6 w-6"
@@ -489,9 +498,20 @@ export function ClosetScene({
           <Link
             href="/add"
             aria-label="Add an item"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-sunshine text-3xl font-light leading-none text-tide shadow ring-2 ring-gold"
+            className="btn-round"
           >
-            +
+            {/* Drawn, not typed, so it sits exactly in the middle in any font. */}
+            <svg
+              viewBox="0 0 24 24"
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
           </Link>
         </div>
 
@@ -530,7 +550,7 @@ export function ClosetScene({
 
         {look?.mixed && (
           <span
-            className="absolute left-4 top-[15%] z-20 rounded-full bg-shell/90 px-3 py-1 text-xs font-semibold text-tide shadow ring-1 ring-seaglass"
+            className="absolute left-4 top-[15%] z-20 pill"
             title="Put together from your try-ons. Make it exact for a new picture."
           >
             Mixed
@@ -556,7 +576,7 @@ export function ClosetScene({
                     className={
                       scene.arrows
                         ? "pointer-events-auto block h-12 w-12 rounded-full transition active:scale-90 disabled:opacity-50"
-                        : "pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-shell/90 text-2xl leading-none text-tide shadow ring-1 ring-seaglass transition active:scale-90 disabled:opacity-50"
+                        : "btn-round pointer-events-auto text-2xl"
                     }
                   >
                     {scene.arrows ? (
@@ -579,7 +599,10 @@ export function ClosetScene({
         {/* What the arrows landed on, with Put on */}
         {browsing && !working && (
           <div
-            className="absolute left-1/2 z-20 flex w-[min(15rem,70%)] -translate-x-1/2 items-center gap-2 rounded-2xl bg-shell/95 p-2 shadow-lg ring-1 ring-seaglass"
+            key={wearingCard ?? "card"}
+            className={`absolute left-1/2 z-20 flex w-[min(15rem,70%)] -translate-x-1/2 items-center gap-2 rounded-2xl border-[1.5px] border-gold bg-white p-2 shadow-lg ${
+              wearingCard ? "animate-fade-away" : ""
+            }`}
             style={{ bottom: "3%" }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL */}
@@ -603,7 +626,7 @@ export function ClosetScene({
               <button
                 type="button"
                 onClick={() => putOn(browsing)}
-                className="shrink-0 rounded-full bg-sunshine px-3 py-2 text-sm font-semibold text-tide shadow-sm"
+                className="btn shrink-0 px-3 py-1.5 text-sm"
               >
                 Put on
               </button>
@@ -614,9 +637,7 @@ export function ClosetScene({
         {working && (
           <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-sand/50 backdrop-blur-[2px]">
             <span className="h-12 w-12 animate-spin rounded-full border-4 border-seaglass border-t-gold" />
-            <span className="rounded-full bg-shell/90 px-4 py-1 text-lg font-semibold shadow">
-              Getting you dressed…
-            </span>
+            <span className="pill px-4 text-lg">Getting you dressed…</span>
           </div>
         )}
       </div>
@@ -643,7 +664,7 @@ export function ClosetScene({
                 type="button"
                 disabled={working}
                 onClick={backToStart}
-                className="rounded-full bg-seaglass px-5 py-2 text-sm font-semibold text-tide shadow-sm transition active:scale-[0.98] disabled:opacity-60"
+                className="btn py-2 text-base"
               >
                 Back to PJs
               </button>
@@ -653,7 +674,7 @@ export function ClosetScene({
                 type="button"
                 disabled={working}
                 onClick={() => void makeExact()}
-                className="rounded-full bg-shell px-5 py-2 text-sm font-semibold text-tide shadow-sm ring-1 ring-seaglass transition active:scale-[0.98] disabled:opacity-60"
+                className="btn py-2 text-base"
               >
                 Make it exact
               </button>
@@ -663,7 +684,7 @@ export function ClosetScene({
                   type="button"
                   disabled={working}
                   onClick={redo}
-                  className="rounded-full bg-shell px-5 py-2 text-sm font-semibold text-tide shadow-sm ring-1 ring-seaglass transition active:scale-[0.98] disabled:opacity-60"
+                  className="btn py-2 text-base"
                 >
                   Redo
                 </button>

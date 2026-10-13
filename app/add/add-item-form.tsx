@@ -183,7 +183,7 @@ export function AddItemForm() {
         <button
           type="submit"
           disabled={step === "looking" || !link.trim()}
-          className="rounded-full bg-sunshine px-6 py-3 text-base font-semibold text-tide shadow-sm transition active:scale-[0.98] disabled:opacity-60"
+          className="btn px-6 py-3 text-lg"
         >
           {step === "looking" ? "Looking it up…" : "Preview"}
         </button>
@@ -226,11 +226,11 @@ export function AddItemForm() {
             <button
               type="button"
               onClick={() => void pastePicture()}
-              className="rounded-full bg-sunshine px-5 py-3 text-base font-semibold text-tide shadow-sm transition active:scale-[0.98]"
+              className="btn py-3 text-lg"
             >
               Paste picture
             </button>
-            <label className="cursor-pointer rounded-full bg-seaglass px-5 py-3 text-base font-semibold text-tide shadow-sm transition active:scale-[0.98]">
+            <label className="btn cursor-pointer py-3 text-lg">
               {image ? "Choose a different screenshot" : "Upload a screenshot"}
               <input
                 type="file"
@@ -276,8 +276,8 @@ export function AddItemForm() {
               key={c.value}
               className={`cursor-pointer rounded-xl px-3 py-3 text-center text-sm font-medium ring-1 transition ${
                 kind === c.value
-                  ? "bg-seaglass ring-seaglass-deep"
-                  : "bg-shell ring-seaglass"
+                  ? "bg-sunshine/30 ring-2 ring-gold"
+                  : "bg-white ring-gold/60"
               }`}
             >
               <input
@@ -300,7 +300,7 @@ export function AddItemForm() {
         type="button"
         onClick={() => void save()}
         disabled={saving}
-        className="rounded-full bg-sunshine px-6 py-3 text-base font-semibold text-tide shadow-sm transition active:scale-[0.98] disabled:opacity-60"
+        className="btn px-6 py-3 text-lg"
       >
         {saving ? "Saving…" : "Save to closet"}
       </button>

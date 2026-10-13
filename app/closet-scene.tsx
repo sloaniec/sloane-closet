@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CreditLine } from "@/components/credit-line";
 import {
   ClosetSections,
@@ -11,10 +11,10 @@ import {
 } from "@/components/closet-sections";
 import { FillImage, sceneFor, shelvesFor } from "@/components/scenes";
 import { canTryOn } from "@/lib/kinds";
-import { stepToReturnTo, wornItems } from "@/lib/outfit";
+import { slotOf, stepToReturnTo, wornItems } from "@/lib/outfit";
 import { keyOutGreen } from "@/lib/green-screen";
 import { pollUntilDone } from "@/lib/poll";
-import type { TryOnView } from "@/lib/tryons";
+import type { SavedLook, TryOnView } from "@/lib/tryons";
 import { useCreditSummary } from "@/lib/use-credit-summary";
 
 export type Look = {
@@ -94,6 +94,18 @@ export function ClosetScene({
         : (from + delta + list.length) % list.length;
     setBrowse({ section, index });
     scrollItemIntoView(list[index].id);
+
+    // Already made this combination? Put it straight on (free).
+    const item = list[index];
+    if (!worn.includes(item.id)) {
+      const place = placeFor(item);
+      const ready = savedFor(place.base, item.id);
+      if (ready) void showSaved(ready, place);
+    }
+    // Get the next one in this direction ready too.
+    const next = list[(index + delta + list.length) % list.length];
+    const nextSaved = savedFor(placeFor(next).base, next.id);
+    if (nextSaved) void prepare(nextSaved.id, nextSaved.resultUrl);
   }
   const browsing = browse
     ? items.filter((i) => i.section === browse.section)[browse.index]
@@ -101,27 +113,110 @@ export function ClosetScene({
   const summary = useCreditSummary(look?.id);
 
   // On a green-screen photo she stands in the scene; otherwise she shows
-  // in the mirror.
+  // in the mirror. Pictures are prepared once (green removed) and kept, so
+  // switching between saved looks is instant. The current picture stays up
+  // until the next one is ready.
   const figureSrc = look?.imageUrl ?? photo?.url ?? null;
-  const [keyed, setKeyed] = useState<{ src: string; url: string } | null>(null);
+  const prepared = useRef(new Map<string, Promise<string>>());
+  function prepare(id: string, url: string): Promise<string> {
+    if (!photo?.greenScreen) return Promise.resolve(url);
+    let ready = prepared.current.get(id);
+    if (!ready) {
+      ready = keyOutGreen(url);
+      ready.catch(() => prepared.current.delete(id));
+      prepared.current.set(id, ready);
+    }
+    return ready;
+  }
+  const [standing, setStanding] = useState<{ id: string; url: string } | null>(
+    null,
+  );
+  const lookKey = look?.id ?? "photo";
   useEffect(() => {
     if (!photo?.greenScreen || !figureSrc) return;
-    let url: string | null = null;
-    let cancelled = false;
-    keyOutGreen(figureSrc)
-      .then((u) => {
-        url = u;
-        if (cancelled) URL.revokeObjectURL(u);
-        else setKeyed({ src: figureSrc, url: u });
+    let current = true;
+    prepare(lookKey, figureSrc)
+      .then((url) => {
+        if (current) setStanding({ id: lookKey, url });
       })
       .catch(() => {});
     return () => {
-      cancelled = true;
-      if (url) URL.revokeObjectURL(url);
+      current = false;
     };
-  }, [figureSrc, photo?.greenScreen]);
-  const standing =
-    photo?.greenScreen && keyed?.src === figureSrc ? keyed.url : null;
+    // prepare() is stable in effect for a given photo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lookKey, figureSrc, photo?.greenScreen]);
+
+  // Saved looks she can switch to for free from here: pieces added on top
+  // of this look, and swaps for its last piece.
+  const saved = useRef(new Map<string, SavedLook>());
+  const savedKey = (base: string | null, itemId: string) =>
+    `${base ?? ""}|${itemId}`;
+  const savedFor = (base: string | null, itemId: string) =>
+    saved.current.get(savedKey(base, itemId));
+  function remember(look: SavedLook) {
+    saved.current.set(savedKey(look.baseTryOnId, look.itemId), look);
+  }
+  useEffect(() => {
+    if (!photo) return;
+    const bases = new Set<string>([look?.id ?? "", look?.baseId ?? ""]);
+    for (const base of bases) {
+      fetch(`/api/tryons/saved?base=${base}`, { cache: "no-store" })
+        .then((res) => (res.ok ? (res.json() as Promise<SavedLook[]>) : []))
+        .then((looks) =>
+          looks.forEach((l) =>
+            saved.current.set(`${l.baseTryOnId ?? ""}|${l.itemId}`, l),
+          ),
+        )
+        .catch(() => {});
+    }
+  }, [look?.id, look?.baseId, photo]);
+
+  // Where a piece goes: in place of the last piece if it's the same type
+  // (FASHN swaps it anyway, and more combinations match saved looks), or
+  // on top of the current look.
+  function placeFor(item: RailItem) {
+    if (!look) return { base: null, itemIds: [item.id], chain: [] as string[] };
+    const last = look.itemIds[look.itemIds.length - 1];
+    const lastSlot = slotOf(kindOf(last));
+    if (lastSlot && lastSlot === slotOf(item.kind)) {
+      return {
+        base: look.baseId,
+        itemIds: [...look.itemIds.slice(0, -1), item.id],
+        chain: look.chain.slice(0, -1),
+      };
+    }
+    return {
+      base: look.id,
+      itemIds: [...look.itemIds, item.id],
+      chain: look.chain,
+    };
+  }
+
+  // Shows a saved look once its picture is ready. Only the latest request
+  // wins, so quick arrow taps can't land out of order.
+  const latest = useRef(0);
+  async function showSaved(
+    found: SavedLook,
+    place: { itemIds: string[]; chain: string[] },
+  ) {
+    const ticket = ++latest.current;
+    setNotice(null);
+    try {
+      await prepare(found.id, found.resultUrl);
+    } catch {
+      // Show it anyway; the picture will load on its own.
+    }
+    if (ticket !== latest.current) return;
+    showLook({
+      id: found.id,
+      baseId: found.baseTryOnId,
+      path: "",
+      itemIds: place.itemIds,
+      chain: [...place.chain, found.id],
+      imageUrl: found.resultUrl,
+    });
+  }
 
   function showLook(next: Look | null) {
     setLook(next);
@@ -163,6 +258,13 @@ export function ClosetScene({
         },
       );
       if (view.status === "completed" && view.resultUrl) {
+        remember({
+          id: view.id,
+          itemId: view.itemId,
+          baseTryOnId: view.baseTryOnId,
+          resultUrl: view.resultUrl,
+        });
+        latest.current++;
         showLook({
           id: view.id,
           baseId: view.baseTryOnId,
@@ -204,10 +306,16 @@ export function ClosetScene({
       void returnTo(look, back);
       return;
     }
+    const place = placeFor(item);
+    const ready = savedFor(place.base, item.id);
+    if (ready) {
+      void showSaved(ready, place);
+      return;
+    }
     void run(
-      { itemId: item.id, baseTryOnId: look?.id ?? null, redo: false },
-      [...(look?.itemIds ?? []), item.id],
-      look?.chain ?? [],
+      { itemId: item.id, baseTryOnId: place.base, redo: false },
+      place.itemIds,
+      place.chain,
     );
   }
 
@@ -221,6 +329,8 @@ export function ClosetScene({
       });
       const view = res.ok ? ((await res.json()) as TryOnView) : null;
       if (view?.status !== "completed" || !view.resultUrl) throw new Error();
+      await prepare(view.id, view.resultUrl).catch(() => {});
+      latest.current++;
       showLook({
         id: view.id,
         baseId: index > 0 ? from.chain[index - 1] : null,
@@ -305,16 +415,18 @@ export function ClosetScene({
         </div>
 
         {/* Her */}
-        {standing ? (
-          <>
-            <span className="absolute bottom-[5%] left-1/2 h-4 w-40 -translate-x-1/2 rounded-[50%] bg-tide/20 blur-md" />
-            {/* eslint-disable-next-line @next/next/no-img-element -- generated cut-out */}
-            <img
-              src={standing}
-              alt="You, in your current outfit"
-              className="absolute bottom-[5%] left-1/2 z-10 h-[80%] w-auto max-w-none -translate-x-1/2 object-contain drop-shadow-xl"
-            />
-          </>
+        {photo?.greenScreen ? (
+          standing && (
+            <>
+              <span className="absolute bottom-[5%] left-1/2 h-4 w-40 -translate-x-1/2 rounded-[50%] bg-tide/20 blur-md" />
+              {/* eslint-disable-next-line @next/next/no-img-element -- generated cut-out */}
+              <img
+                src={standing.url}
+                alt="You, in your current outfit"
+                className="absolute bottom-[5%] left-1/2 z-10 h-[80%] w-auto max-w-none -translate-x-1/2 object-contain drop-shadow-xl"
+              />
+            </>
+          )
         ) : (
           <div className="absolute bottom-[7%] left-[24%] top-[17%] z-10 w-[52%] overflow-hidden rounded-t-full border-[6px] border-gold bg-shell shadow-xl ring-4 ring-shell">
             {figureSrc && !photo?.greenScreen ? (

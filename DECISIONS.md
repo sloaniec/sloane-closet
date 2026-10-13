@@ -176,3 +176,8 @@ Decisions that should outlive the task they came from. Each one has a date, the 
 - **What:** "Wearing" (gold ring, the arrow card) shows only what's actually on: the last top or outerwear, the last bottom, or a dress (which replaces both). Switching back to a piece she just had returns to its saved look for free, as long as only that same slot changed since. Otherwise the piece is tried on top of the current look (1 credit).
 - **Why:** Sloane found that after putting on a black shirt, the replaced tank still counted as "Wearing" and couldn't be put back on.
 - **Rejected:** Treating every piece ever put on as still worn.
+
+## 2026-10-13: Saved combinations go straight on; swaps replace the last piece
+- **What:** When the arrows land on a piece that's already been made in this combination, it goes on immediately, with no "Put on" and no credit. New combinations still show **Put on**. A new piece of the same type as the last one (top after top) is tried on the look before that piece, instead of on top of it.
+- **Why:** Sloane didn't want to tap Put on for things she'd already paid for, and switching was slow. Swapping from the earlier look matches what FASHN does anyway, reuses more saved looks, and avoids stacking generations (sharper pictures).
+- **Rejected:** Always showing Put on; stacking every new piece on the latest look.

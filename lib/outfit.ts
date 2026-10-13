@@ -5,7 +5,7 @@
 
 type Slot = "top" | "bottom" | "dress";
 
-function slotOf(kind: string | undefined): Slot | null {
+export function slotOf(kind: string | undefined): Slot | null {
   if (kind === "top" || kind === "outerwear") return "top";
   if (kind === "bottom") return "bottom";
   if (kind === "dress") return "dress";

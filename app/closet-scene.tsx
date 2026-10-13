@@ -350,6 +350,19 @@ export function ClosetScene({
     ? items.filter((i) => i.section === browse.section)[browse.index]
     : null;
 
+  // Once the piece the arrows landed on is on, its "Wearing" card fades
+  // away after a few seconds. A "Put on" card stays until she decides.
+  const WEARING_CARD_MS = 3000;
+  const wearingCard =
+    browsing && checking !== browsing.id && worn.includes(browsing.id)
+      ? browsing.id
+      : null;
+  useEffect(() => {
+    if (!wearingCard) return;
+    const timer = setTimeout(() => setBrowse(null), WEARING_CARD_MS);
+    return () => clearTimeout(timer);
+  }, [wearingCard]);
+
   function putOn(item: RailItem) {
     if (working) return;
     setBrowse(null);
@@ -579,7 +592,10 @@ export function ClosetScene({
         {/* What the arrows landed on, with Put on */}
         {browsing && !working && (
           <div
-            className="absolute left-1/2 z-20 flex w-[min(15rem,70%)] -translate-x-1/2 items-center gap-2 rounded-2xl bg-shell/95 p-2 shadow-lg ring-1 ring-seaglass"
+            key={wearingCard ?? "card"}
+            className={`absolute left-1/2 z-20 flex w-[min(15rem,70%)] -translate-x-1/2 items-center gap-2 rounded-2xl bg-shell/95 p-2 shadow-lg ring-1 ring-seaglass ${
+              wearingCard ? "animate-fade-away" : ""
+            }`}
             style={{ bottom: "3%" }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL */}

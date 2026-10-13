@@ -54,3 +54,4 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 50. ~~Sloane's painted gold-and-wood buttons (arrows and +) for the Ocean closet.~~ Done in PR 8 (arrows only: Sloane chose to keep the plain yellow + ).
 51. ~~Painted buttons for the City & ocean closet (Sloane is making them for her brother).~~ Done in PR 8: brass-and-driftwood arrows and a matching sign.
 52. Idea: a painted Profile button to match the arrows and +.
+53. ~~The "Wearing" card under her should go away after a few seconds.~~ Done in PR 9: it fades out after 3 seconds; a "Put on" card stays until she taps.

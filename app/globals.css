@@ -23,6 +23,17 @@
   --color-gold: var(--gold);
   --color-coral-orange: var(--coral-orange);
   --font-sans: var(--font-geist-sans);
+  /* The "Wearing" card: stays, then fades out over its last half second. */
+  --animate-fade-away: fade-away 3s ease-in forwards;
+  @keyframes fade-away {
+    0%,
+    83% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
 }
 
 html {

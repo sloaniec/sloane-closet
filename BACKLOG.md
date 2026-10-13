@@ -51,3 +51,6 @@ Every to-do, bug, or idea gets a numbered line. When one is done, mark it with t
 47. ~~Bug: arrows still showed "Put on" for a piece already paid for, when the outfit was built before swaps (piece added on top) or the piece was an earlier step.~~ Done in PR 7: arrows check every way a saved look can exist (earlier step, swap, added on top), ask the server if unsure, and show "…" while checking.
 48. ~~Mixing pieces she already paid for shouldn't cost again (shirt 2 was charged again after changing bottoms).~~ Done in PR 7: each piece is paid once; any mix of paid pieces is put together in the browser for free ("Mixed" tag), with an optional **Make it exact** that shows its credit cost first.
 49. Idea: if mixed outfits look off at the waist or sleeves on real photos, tune the mixing (lib/compose.ts) using her actual try-ons.
+50. ~~Sloane's painted gold-and-wood buttons (arrows and +) for the Ocean closet.~~ Done in PR 8.
+51. Painted buttons for the City & ocean closet (Sloane is making them for her brother).
+52. Idea: a painted Profile button to match the arrows and +.

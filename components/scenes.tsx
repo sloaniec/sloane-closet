@@ -10,6 +10,8 @@ export type Scene = {
   label: string;
   image: string;
   shelves: string; // the shelves that go with this background
+  // Sloane's painted buttons for this background (round pictures).
+  buttons?: { prev: string; next: string; add: string };
 };
 
 export type Shelves = {
@@ -28,6 +30,11 @@ export const SCENES: Scene[] = [
     label: "Ocean closet",
     image: "/scenes/ocean-closet.webp",
     shelves: "ocean-shelves",
+    buttons: {
+      prev: "/buttons/ocean-prev.webp",
+      next: "/buttons/ocean-next.webp",
+      add: "/buttons/ocean-add.webp",
+    },
   },
   {
     id: "city-closet",
@@ -94,6 +101,19 @@ export function FillImage({
       priority={priority}
       sizes="(max-width: 448px) 100vw, 448px"
       className="object-cover"
+    />
+  );
+}
+
+// One of the background's painted buttons, filling its round button.
+export function ButtonArt({ src }: { src: string }) {
+  return (
+    <Image
+      src={src}
+      alt=""
+      width={120}
+      height={120}
+      className="h-full w-full drop-shadow-md"
     />
   );
 }

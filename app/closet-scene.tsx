@@ -10,7 +10,12 @@ import {
   scrollItemIntoView,
   type RailItem,
 } from "@/components/closet-sections";
-import { FillImage, sceneFor, shelvesFor } from "@/components/scenes";
+import {
+  ButtonArt,
+  FillImage,
+  sceneFor,
+  shelvesFor,
+} from "@/components/scenes";
 import { composeOutfit } from "@/lib/compose";
 import { keyOutGreen } from "@/lib/green-screen";
 import { canTryOn } from "@/lib/kinds";
@@ -483,9 +488,13 @@ export function ClosetScene({
           <Link
             href="/add"
             aria-label="Add an item"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-sunshine text-3xl font-light leading-none text-tide shadow ring-2 ring-gold"
+            className={
+              scene.buttons
+                ? "block h-12 w-12 rounded-full transition active:scale-90"
+                : "flex h-11 w-11 items-center justify-center rounded-full bg-sunshine text-3xl font-light leading-none text-tide shadow ring-2 ring-gold"
+            }
           >
-            +
+            {scene.buttons ? <ButtonArt src={scene.buttons.add} /> : "+"}
           </Link>
         </div>
 
@@ -547,9 +556,23 @@ export function ClosetScene({
                     disabled={working}
                     onClick={() => step(row.section, delta)}
                     aria-label={`${delta === -1 ? "Previous" : "Next"} ${row.label}`}
-                    className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-shell/90 text-2xl leading-none text-tide shadow ring-1 ring-seaglass transition active:scale-90 disabled:opacity-50"
+                    className={
+                      scene.buttons
+                        ? "pointer-events-auto block h-12 w-12 rounded-full transition active:scale-90 disabled:opacity-50"
+                        : "pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-shell/90 text-2xl leading-none text-tide shadow ring-1 ring-seaglass transition active:scale-90 disabled:opacity-50"
+                    }
                   >
-                    {delta === -1 ? "‹" : "›"}
+                    {scene.buttons ? (
+                      <ButtonArt
+                        src={
+                          delta === -1 ? scene.buttons.prev : scene.buttons.next
+                        }
+                      />
+                    ) : delta === -1 ? (
+                      "‹"
+                    ) : (
+                      "›"
+                    )}
                   </button>
                 ))}
               </div>
